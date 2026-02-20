@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    width: 320px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 16px; color: #1e293b;
+}
+h2 { font-size: 16px; margin-bottom: 12px; }
+.info { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+.btn {
+    width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
+    color: white; background: linear-gradient(135deg, #1e40af, #7c3aed);
+    border: none; border-radius: 8px; cursor: pointer;
+    transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+#status {
+    margin-top: 12px; font-size: 13px; color: #64748b;
+    min-height: 20px;
+}
+.error { color: #ef4444; }
+.success { color: #22c55e; }
+.settings { margin-top: 14px; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+.settings label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px; }
+.settings input {
+    width: 100%; padding: 6px 8px; font-size: 12px; border: 1px solid #e2e8f0;
+    border-radius: 6px; color: #475569; font-family: monospace;
+}
+</style>
+</head>
+<body>
+<h2>TabTriage</h2>
+<div class="info" id="tabCount">Tabs werden gezählt...</div>
+<button class="btn" id="captureBtn">Capture This Window</button>
+<div id="status"></div>
+<div class="settings">
+    <label>Backend URL</label>
+    <input type="text" id="backendUrl" value="http://localhost:5111" placeholder="http://host:5111">
+</div>
+<script src="popup.js"></script>
+</body>
+</html>

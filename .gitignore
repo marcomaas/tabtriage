@@ -1,0 +1,36 @@
+# Data
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Config with secrets
+config/config.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# macOS
+.DS_Store
+*.app/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Claude Code
+.claude/
+
+# Generated output
+*.html.bak
+
+# Extension package
+*.zip

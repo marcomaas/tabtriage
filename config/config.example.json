@@ -1,0 +1,9 @@
+{
+  "backend_port": 5111,
+  "backend_host": "0.0.0.0",
+  "notion_config": "/path/to/your/notion.json",
+  "triage_html_path": "/path/to/output/tabtriage/index.html",
+  "db_path": "/path/to/tabtriage/data/tabtriage.db",
+  "claude_timeout": 300,
+  "max_content_length": 50000
+}
