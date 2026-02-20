@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     window_title TEXT,
+    hostname TEXT,
     captured_at TEXT DEFAULT (datetime('now')),
     status TEXT DEFAULT 'pending'  -- pending | triaged | archived
 );
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS tabs (
     cluster_label TEXT,
     og_image TEXT,
     og_description TEXT,
+    media TEXT,
     captured_at TEXT DEFAULT (datetime('now')),
     triaged_at TEXT
 );
