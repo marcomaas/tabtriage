@@ -9,8 +9,9 @@ log = logging.getLogger(__name__)
 
 CLAUDE_TIMEOUT = 300
 
-# Clean environment for Claude CLI subprocess (remove CLAUDECODE to avoid nesting check)
-_clean_env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDE")}
+# Clean environment for Claude CLI subprocess
+# Strip CLAUDECODE (causes "nested session" error) but KEEP CLAUDE_CONFIG_DIR (needed for auth)
+_clean_env = {k: v for k, v in os.environ.items() if not k.startswith("CLAUDECODE")}
 _clean_env["PATH"] = "/usr/local/bin:/usr/bin:/bin"
 
 
@@ -147,6 +148,72 @@ Regeln:
     except Exception as e:
         log.error("Clustering error: %s", e)
         return []
+
+
+def analyze_content(tabs: list[dict]) -> dict:
+    """Deep content analysis across multiple tabs via Claude CLI."""
+    if not tabs:
+        return {"error": "Keine Tabs zur Analyse."}
+
+    tab_lines = []
+    for t in tabs:
+        content_preview = (t.get("content") or "")[:2000]
+        tags_str = ""
+        if t.get("tags"):
+            try:
+                parsed = json.loads(t["tags"]) if isinstance(t["tags"], str) else t["tags"]
+                tags_str = f" [Tags: {', '.join(parsed)}]"
+            except Exception:
+                pass
+        tab_lines.append(
+            f'---\nTitel: {t["title"]}\nURL: {t["url"]}\n'
+            f'Summary: {(t.get("summary") or "")[:300]}{tags_str}\n'
+            f'Inhalt: {content_preview}\n'
+        )
+
+    prompt = f"""Analysiere diese Artikel-Sammlung. Erstelle eine strukturierte Analyse.
+
+ARTIKEL ({len(tabs)} Stück):
+{chr(10).join(tab_lines)}
+
+Antworte EXAKT als JSON (kein anderer Text):
+{{
+  "themes": ["Hauptthema 1", "Hauptthema 2", ...],
+  "insights": ["Erkenntnis 1", "Erkenntnis 2", ...],
+  "connections": ["Verbindung/Widerspruch 1", ...],
+  "recommendations": ["Empfehlung 1", ...],
+  "summary": "Ein Absatz der alles verbindet."
+}}
+
+Regeln:
+- Alle Texte auf Deutsch
+- 3-5 Themen, 3-5 Erkenntnisse, 2-4 Verbindungen, 2-3 Empfehlungen
+- Konkret und nützlich, keine generischen Aussagen"""
+
+    try:
+        result = subprocess.run(
+            ["/usr/local/bin/claude", "-p", "--output-format", "text"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=CLAUDE_TIMEOUT,
+            env=_clean_env,
+        )
+        if result.returncode != 0:
+            log.error("Insights analysis failed: %s", result.stderr[:200])
+            return {"error": "Claude CLI Fehler"}
+
+        text = result.stdout.strip()
+        start = text.find("{")
+        end = text.rfind("}") + 1
+        if start >= 0 and end > start:
+            return json.loads(text[start:end])
+        return {"error": "Konnte Antwort nicht parsen", "raw": text[:500]}
+    except subprocess.TimeoutExpired:
+        return {"error": "Timeout bei der Analyse"}
+    except Exception as e:
+        log.error("Insights error: %s", e)
+        return {"error": str(e)}
 
 
 def _parse_clusters(text: str, tabs: list[dict]) -> list[dict]:

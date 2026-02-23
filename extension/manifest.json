@@ -3,7 +3,7 @@
   "name": "TabTriage",
   "version": "1.0",
   "description": "Capture all tabs in current window for triage",
-  "permissions": ["tabs", "activeTab", "scripting", "storage", "alarms"],
+  "permissions": ["tabs", "activeTab", "scripting", "storage", "alarms", "notifications"],
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "popup.html",
@@ -12,6 +12,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["tracker.js"],
+      "run_at": "document_idle"
+    }
+  ],
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

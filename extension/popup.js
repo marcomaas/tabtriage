@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const captureBtn = document.getElementById('captureBtn');
     const tabCountEl = document.getElementById('tabCount');
     const backendInput = document.getElementById('backendUrl');
+    const reminderCheckbox = document.getElementById('reminderEnabled');
+    const thresholdInput = document.getElementById('tabThreshold');
+    const progressArea = document.getElementById('progressArea');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+    const closeScopeSelect = document.getElementById('closeScope');
+    const behaviorCheckbox = document.getElementById('behaviorTracking');
 
     // Load saved backend URL
     chrome.storage.local.get('backendUrl', (data) => {
@@ -14,11 +21,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Load reminder + close scope + behavior settings
+    chrome.storage.local.get(['reminderEnabled', 'tabThreshold', 'closeScope', 'behaviorTracking'], (data) => {
+        if (data.reminderEnabled !== undefined) reminderCheckbox.checked = data.reminderEnabled;
+        if (data.tabThreshold !== undefined) thresholdInput.value = data.tabThreshold;
+        if (data.closeScope) closeScopeSelect.value = data.closeScope;
+        if (data.behaviorTracking !== undefined) behaviorCheckbox.checked = data.behaviorTracking;
+    });
+
     // Save backend URL on change
     backendInput.addEventListener('change', () => {
         BACKEND = backendInput.value.replace(/\/+$/, '');
         backendInput.value = BACKEND;
         chrome.storage.local.set({ backendUrl: BACKEND });
+    });
+
+    // Save reminder settings
+    reminderCheckbox.addEventListener('change', () => {
+        chrome.storage.local.set({ reminderEnabled: reminderCheckbox.checked });
+    });
+    thresholdInput.addEventListener('change', () => {
+        const val = Math.max(5, Math.min(200, parseInt(thresholdInput.value) || 30));
+        thresholdInput.value = val;
+        chrome.storage.local.set({ tabThreshold: val });
+    });
+    closeScopeSelect.addEventListener('change', () => {
+        chrome.storage.local.set({ closeScope: closeScopeSelect.value });
+    });
+    behaviorCheckbox.addEventListener('change', () => {
+        chrome.storage.local.set({ behaviorTracking: behaviorCheckbox.checked });
     });
 
     // Count tabs on popup open
@@ -36,6 +67,36 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Tab count error:', err);
     });
 
+    // Progress polling
+    function pollProgress(sessionId) {
+        progressArea.style.display = 'block';
+        let interval = setInterval(async () => {
+            try {
+                const r = await fetch(BACKEND + '/api/capture/' + sessionId + '/progress');
+                if (!r.ok) { clearInterval(interval); return; }
+                const data = await r.json();
+                const pct = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+
+                if (data.phase === 'summarizing') {
+                    progressLabel.textContent = `Summarizing ${data.completed}/${data.total}...`;
+                    progressBar.style.width = pct + '%';
+                } else if (data.phase === 'clustering') {
+                    progressLabel.textContent = 'Clustering themes...';
+                    progressBar.style.width = '90%';
+                } else if (data.phase === 'done') {
+                    progressLabel.textContent = `Done! ${data.clusters || 0} clusters found.`;
+                    progressBar.style.width = '100%';
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressLabel.innerHTML = `<a href="${BACKEND}/" target="_blank" style="color:#6366f1;font-weight:600">Open Triage &rarr;</a>`;
+                    }, 1000);
+                }
+            } catch (e) {
+                clearInterval(interval);
+            }
+        }, 2000);
+    }
+
     // Capture button handler
     captureBtn.addEventListener('click', async () => {
         captureBtn.disabled = true;
@@ -52,6 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 !t.url.startsWith('about:')
             );
 
+            // Check if behavior tracking is enabled
+            const settings = await chrome.storage.local.get('behaviorTracking');
+            const trackBehavior = settings.behaviorTracking !== false; // default: on
+
             statusEl.textContent = `${validTabs.length} Tabs gefunden. Inhalte werden extrahiert...`;
 
             const tabData = [];
@@ -67,11 +132,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         files: ['content.js']
                     });
                     const content = results?.[0]?.result || null;
+                    // Collect behavior data from tracker.js (if enabled)
+                    let behavior = null;
+                    if (trackBehavior) {
+                        try {
+                            const bResults = await chrome.scripting.executeScript({
+                                target: { tabId: tab.id },
+                                func: () => window.__ttGetBehavior ? window.__ttGetBehavior() : null,
+                            });
+                            behavior = bResults?.[0]?.result || null;
+                        } catch (be) {
+                            // tracker may not be injected on some pages
+                        }
+                    }
                     tabData.push({
                         url: tab.url,
                         title: tab.title || tab.url,
                         content: content,
                         favicon: tab.favIconUrl || null,
+                        behavior: behavior,
                     });
                 } catch (e) {
                     console.warn('Skip tab:', tab.url, e.message);
@@ -80,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         title: tab.title || tab.url,
                         content: null,
                         favicon: tab.favIconUrl || null,
+                        behavior: null,
                     });
                 }
                 extracted++;
@@ -104,14 +184,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const result = await resp.json();
 
-            statusEl.textContent = `${result.tab_count} Tabs erfasst! Session #${result.session_id}`;
+            if (result.status === 'all_duplicates') {
+                statusEl.textContent = result.message || `Alle ${result.skipped} Tabs bereits erfasst.`;
+                statusEl.className = '';
+                captureBtn.disabled = false;
+                captureBtn.textContent = 'Capture This Window';
+                // Still open triage page to see existing tabs
+                setTimeout(() => { chrome.tabs.create({ url: BACKEND + '/' }); }, 500);
+                return;
+            }
+            const skipMsg = result.skipped > 0 ? ` (${result.skipped} bereits bekannt)` : '';
+            statusEl.textContent = `${result.tab_count} neue Tabs erfasst!${skipMsg}`;
             statusEl.className = 'success';
             captureBtn.textContent = 'Fertig!';
 
+            // Start polling progress
+            if (result.session_id) {
+                pollProgress(result.session_id);
+            }
+
+            // Open triage page after short delay
             setTimeout(() => {
-                chrome.tabs.create({
-                    url: 'file:///Users/marcomaas/Library/CloudStorage/Dropbox-Privat/claude/projekte/TabTriage/index.html'
-                });
+                chrome.tabs.create({ url: BACKEND + '/' });
             }, 500);
 
         } catch (e) {

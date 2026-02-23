@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS tabs (
     og_description TEXT,
     media TEXT,
     captured_at TEXT DEFAULT (datetime('now')),
-    triaged_at TEXT
+    triaged_at TEXT,
+    behavior_data TEXT  -- JSON: scroll_depth_pct, active_time_sec, click_count, etc.
 );
 
 CREATE VIRTUAL TABLE IF NOT EXISTS tabs_fts USING fts5(
@@ -50,3 +51,9 @@ CREATE TRIGGER IF NOT EXISTS tabs_ad AFTER DELETE ON tabs BEGIN
     INSERT INTO tabs_fts(tabs_fts, rowid, title, summary, content)
     VALUES ('delete', old.id, old.title, old.summary, old.content);
 END;
+
+CREATE TABLE IF NOT EXISTS ignored_domains (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    domain TEXT NOT NULL UNIQUE,
+    added_at TEXT DEFAULT (datetime('now'))
+);

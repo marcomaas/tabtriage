@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TabTriage</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233B82F6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.236 22a3 3 0 0 0-2.2-5'/%3E%3Cpath d='M16 20a3 3 0 0 1 3-3h1a2 2 0 0 0 2-2v-2a4 4 0 0 0-4-4V4'/%3E%3Cpath d='M18 13h.01'/%3E%3Cpath d='M18 6a4 4 0 0 0-4 4 7 7 0 0 0-7 7c0-5 4-5 4-10.5a4.5 4.5 0 1 0-9 0 2.5 2.5 0 0 0 5 0C7 10 3 11 3 17c0 2.8 2.2 5 5 5h10'/%3E%3C/svg%3E">
 <style>
 :root {
     --bg: #f1f5f9; --card: #fff; --border: #e2e8f0;
@@ -16,40 +17,52 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px}
 
 /* Header */
-.hdr{background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hdr{background:linear-gradient(135deg,#1e3a8a,#4f46e5);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hdr-logo svg{width:24px;height:24px}
 .hdr h1{font-size:20px;font-weight:700}
+.hdr-tagline{font-size:11px;opacity:.7;font-weight:400}
 .hdr-stats{font-size:12px;opacity:.85}
 .hdr-actions{display:flex;gap:6px;flex-wrap:wrap}
 .hdr-btn{padding:6px 14px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap}
 .hdr-btn:hover{background:rgba(255,255,255,.25)}
 .hdr-btn.danger{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.2)}
 .hdr-btn.primary{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
+.hdr-btn.auto{background:linear-gradient(135deg,#f59e0b,#ef4444);border-color:rgba(255,255,255,.5);font-weight:700}
+
+/* Progress bar (SSE) */
+.progress-banner{display:none;padding:10px 24px;background:#eef2ff;border-bottom:1px solid #c7d2fe;align-items:center;gap:12px}
+.progress-banner.show{display:flex}
+.progress-banner .pb-bar{flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.progress-banner .pb-fill{height:100%;background:linear-gradient(90deg,var(--indigo),var(--blue));border-radius:3px;transition:width .3s}
+.progress-banner .pb-label{font-size:12px;color:var(--indigo);font-weight:500;white-space:nowrap}
 
 /* Tabs nav */
 .tabs-nav{display:flex;background:#fff;border-bottom:1px solid var(--border);padding:0 24px;gap:0}
 .tab-btn{padding:10px 18px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;font-weight:500}
 .tab-btn:hover{color:var(--text)}
-.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
-.tab-btn .badge-count{background:var(--blue);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px}
+.tab-btn.active{color:var(--indigo);border-bottom-color:var(--indigo)}
+.tab-btn .badge-count{background:var(--indigo);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px}
 
 /* Toolbar */
 .toolbar{padding:10px 24px;display:flex;gap:8px;align-items:center;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .search-box{flex:1;min-width:180px;position:relative}
 .search-box input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:7px;font-size:13px;outline:none}
-.search-box input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.1)}
+.search-box input:focus{border-color:var(--indigo);box-shadow:0 0 0 2px rgba(99,102,241,.15)}
 .search-box::before{content:'';position:absolute;left:10px;top:10px;width:12px;height:12px;border:2px solid var(--light);border-radius:50%}
 .chip{padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#fff;transition:all .12s;white-space:nowrap;user-select:none}
-.chip:hover{border-color:var(--blue);color:var(--blue)}
-.chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.chip:hover{border-color:var(--indigo);color:var(--indigo)}
+.chip.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
 .chip.star{color:var(--amber)}.chip.star.active{background:var(--amber);border-color:var(--amber);color:#fff}
 .sel-all{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
 .sel-all input{width:15px;height:15px;cursor:pointer}
 
 /* Bulk bar */
-.bulk{display:none;padding:8px 24px;background:#eff6ff;border-bottom:1px solid #bfdbfe;align-items:center;gap:8px;flex-wrap:wrap}
+.bulk{display:none;padding:8px 24px;background:#eef2ff;border-bottom:1px solid #c7d2fe;align-items:center;gap:8px;flex-wrap:wrap}
 .bulk.show{display:flex}
-.bulk .cnt{font-weight:600;font-size:12px;color:var(--blue);min-width:70px}
-.bulk select,.bulk input[type=text]{padding:5px 8px;border:1px solid #93c5fd;border-radius:5px;font-size:11px;background:#fff}
+.bulk .cnt{font-weight:600;font-size:12px;color:var(--indigo);min-width:70px}
+.bulk select,.bulk input[type=text]{padding:5px 8px;border:1px solid #a5b4fc;border-radius:5px;font-size:11px;background:#fff}
 .bbtn{padding:5px 12px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:none;color:#fff}
 
 /* Container */
@@ -68,7 +81,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card:hover{box-shadow:0 2px 8px rgba(0,0,0,.05)}
 .card.cat-read-later{border-left-color:var(--blue)}.card.cat-reference{border-left-color:var(--purple)}
 .card.cat-actionable{border-left-color:var(--amber)}.card.cat-archive{border-left-color:var(--light)}
-.card.cat-dismiss{border-left-color:var(--red);opacity:.4}.card.selected{background:#eff6ff;border-color:var(--blue)}
+.card.cat-dismiss{border-left-color:var(--red);opacity:.4}.card.selected{background:#eef2ff;border-color:var(--indigo)}
 .card.done{opacity:.35;transform:scale(.98);transition:all .4s}
 .card.hiding{opacity:0;max-height:0;padding:0;margin:0;border:none;overflow:hidden;transition:all .4s}
 
@@ -86,7 +99,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-meta{font-size:9px;color:var(--light);display:flex;gap:8px;margin-top:1px}
 .card-meta span{white-space:nowrap}
 .card-tags{display:flex;gap:3px;flex-wrap:wrap;margin-left:auto}
-.tag{font-size:9px;padding:1px 6px;border-radius:8px;background:#f1f5f9;color:var(--muted)}
+.tag{font-size:9px;padding:1px 6px;border-radius:8px;background:#f1f5f9;color:var(--muted);cursor:pointer;transition:all .12s}
+.tag:hover{background:var(--indigo);color:#fff}
 
 .card-body{display:flex;gap:10px;margin-top:4px}
 .card-thumb{width:72px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;background:var(--bg)}
@@ -104,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ac-list{position:absolute;top:100%;left:0;background:#fff;border:1px solid var(--border);border-radius:6px;max-height:180px;overflow-y:auto;z-index:100;width:220px;box-shadow:0 4px 12px rgba(0,0,0,.12);display:none}
 .ac-list.open{display:block}
 .ac-item{padding:5px 8px;font-size:11px;cursor:pointer}
-.ac-item:hover,.ac-item.hl{background:#eff6ff}
+.ac-item:hover,.ac-item.hl{background:#eef2ff}
 .mbtn{padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer;border:1px solid var(--border);background:#fff;white-space:nowrap}
 .mbtn:hover{background:var(--bg)}
 .mbtn.sv{color:var(--green);border-color:var(--green)}
@@ -128,15 +142,106 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ft-body{padding:20px;font-size:14px;line-height:1.8;white-space:pre-wrap;word-wrap:break-word;color:var(--text)}
 
 /* Analytics */
-.analytics{padding:24px;display:none}
+.analytics{padding:24px;display:none;max-width:1100px;margin:0 auto}
 .analytics.show{display:block}
-.ana-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.ana-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-.ana-card h3{font-size:14px;font-weight:600;margin-bottom:10px;color:var(--muted)}
-.ana-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.ana-bar-label{font-size:12px;min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ana-bar-fill{height:18px;border-radius:4px;background:var(--blue);min-width:2px;transition:width .3s}
-.ana-bar-val{font-size:11px;color:var(--muted)}
+.ana-section{margin-bottom:32px}
+.ana-section h2{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--text);display:flex;align-items:center;gap:8px}
+.ana-section h2 .ana-icon{font-size:20px}
+
+/* Stats row */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.stat-val{font-size:28px;font-weight:800;background:linear-gradient(135deg,#1e3a8a,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Tag cloud */
+.tag-cloud{display:flex;flex-wrap:wrap;gap:6px}
+.tag-pill{padding:5px 12px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:#fff;transition:all .15s;display:flex;align-items:center;gap:5px}
+.tag-pill:hover{border-color:var(--indigo);background:#eef2ff;transform:translateY(-1px)}
+.tag-pill .tp-count{font-size:10px;background:var(--bg);padding:1px 6px;border-radius:8px;color:var(--muted)}
+
+/* Source list */
+.source-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.source-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s}
+.source-item:hover{border-color:var(--indigo);background:#eef2ff;transform:translateY(-1px)}
+.source-item .si-bar{flex:1;height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden}
+.source-item .si-fill{height:100%;border-radius:2px;transition:width .3s}
+.source-item .si-name{font-size:12px;font-weight:500;min-width:100px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.source-item .si-count{font-size:11px;color:var(--muted);min-width:24px;text-align:right}
+
+/* Category pills */
+.cat-pills{display:flex;gap:8px;flex-wrap:wrap}
+.cat-pill{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;flex:1;min-width:140px}
+.cat-pill:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.cat-pill .cp-dot{width:10px;height:10px;border-radius:50%}
+.cat-pill .cp-name{font-size:12px;font-weight:500;flex:1}
+.cat-pill .cp-count{font-size:18px;font-weight:800;color:var(--text)}
+
+/* Timeline */
+.timeline{display:flex;gap:3px;align-items:end;height:80px;padding:8px 0}
+.tl-bar{flex:1;background:var(--indigo);border-radius:3px 3px 0 0;min-width:8px;transition:height .3s;cursor:pointer;position:relative}
+.tl-bar:hover{opacity:.8}
+.tl-bar:hover::after{content:attr(data-label);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;margin-bottom:4px}
+
+/* Insights */
+.insight-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.insight{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px}
+.insight .ins-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.insight .ins-val{font-size:15px;font-weight:700;color:var(--text)}
+.insight .ins-sub{font-size:10px;color:var(--light);margin-top:2px}
+
+/* Quick Mode */
+.quick-view{display:none;max-width:600px;margin:0 auto;padding:24px;text-align:center}
+.quick-view.show{display:block}
+.quick-progress{margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.quick-progress .qp-bar{flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.quick-progress .qp-fill{height:100%;background:var(--indigo);border-radius:3px;transition:width .3s}
+.quick-progress .qp-label{font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap}
+.quick-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;text-align:left;margin-bottom:16px;border-left:4px solid var(--indigo);min-height:200px;transition:transform .3s,opacity .3s}
+.quick-card.swipe-left{transform:translateX(-200px) rotate(-5deg);opacity:0}
+.quick-card.swipe-right{transform:translateX(200px) rotate(5deg);opacity:0}
+.quick-card.swipe-up{transform:translateY(-200px);opacity:0}
+.quick-card .qc-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.quick-card .qc-title a{color:inherit;text-decoration:none}
+.quick-card .qc-title a:hover{color:var(--blue)}
+.quick-card .qc-domain{font-size:12px;color:var(--light);margin-bottom:8px}
+.quick-card .qc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.quick-card .qc-summary{font-size:14px;color:var(--muted);line-height:1.7}
+.quick-card .qc-thumb{width:100%;max-height:240px;object-fit:cover;border-radius:8px;margin-bottom:10px}
+.quick-card .qc-content{font-size:13px;color:var(--text);line-height:1.7;margin-top:8px;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.quick-card .qc-meta{display:flex;gap:8px;font-size:11px;color:var(--light);margin-bottom:6px}
+.quick-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.quick-btns button{padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.quick-btns button:hover{transform:scale(1.05)}
+.qb-dismiss{background:#fee2e2;color:var(--red);border-color:var(--red)}
+.qb-save{background:#dcfce7;color:var(--green);border-color:var(--green)}
+.qb-star{background:#fef9c3;color:var(--amber);border-color:var(--amber)}
+.qb-skip{background:#f1f5f9;color:var(--muted);border-color:var(--border)}
+.quick-done{padding:40px;text-align:center}
+.quick-done h2{font-size:24px;margin-bottom:8px}
+.quick-done p{color:var(--muted);font-size:14px}
+
+/* Done-for-today banner */
+.dft-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1e3a8a,#4f46e5);color:#fff;padding:16px 24px;z-index:900;text-align:center;box-shadow:0 -4px 20px rgba(0,0,0,.2);animation:slideUp .3s}
+.dft-banner.show{display:block}
+.dft-banner h3{font-size:16px;margin-bottom:4px}
+.dft-banner p{font-size:13px;opacity:.85;margin-bottom:10px}
+.dft-banner button{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;margin:0 4px}
+.dft-done{background:rgba(255,255,255,.25);color:#fff}
+.dft-more{background:#fff;color:var(--indigo)}
+.dft-keep{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.3)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* Milestone toast */
+.milestone-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#1e3a8a,#4f46e5);color:#fff;padding:20px 32px;border-radius:16px;font-size:18px;font-weight:700;z-index:2000;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);transition:transform .3s}
+.milestone-toast.show{transform:translate(-50%,-50%) scale(1)}
+
+/* Undo banner */
+.undo-banner{display:none;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;z-index:950;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.3);align-items:center;gap:10px;animation:slideUp .3s}
+.undo-banner.show{display:flex}
+.undo-banner button{background:#6366f1;color:#fff;border:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer}
+.undo-banner button:hover{background:#4f46e5}
+.undo-countdown{font-size:11px;color:#94a3b8}
 
 /* Toast */
 .toast{position:fixed;bottom:16px;right:16px;background:#1e293b;color:#fff;padding:10px 16px;border-radius:7px;font-size:13px;z-index:2000;opacity:0;transition:opacity .3s;max-width:350px}
@@ -154,26 +259,104 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     .card-body{flex-direction:column}
     .card-thumb{width:100%;height:auto;max-height:120px}
     .ac-input{width:100px}
+    .quick-btns{flex-direction:column;gap:8px}
+    .quick-btns button{padding:14px 20px}
+    .stat-row{grid-template-columns:repeat(2,1fr)}
 }
+
+/* Re-extract button */
+.re-extract-btn{display:inline-flex;align-items:center;gap:3px;background:var(--amber);color:#fff;border:none;cursor:pointer;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;line-height:1.4;vertical-align:middle;transition:all .15s;flex-shrink:0}
+.re-extract-btn:hover{background:#d97706;transform:scale(1.05)}
+.re-extract-btn .re-icon{display:inline-block;font-size:12px}
+.re-extract-btn.spinning .re-icon{animation:spin 1s linear infinite}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* No-content visual warning */
+.card.no-content{border-left-color:var(--amber) !important;background:#fff7ed}
+.card.no-content .card-sum{color:#b45309}
+.card.no-content .nc-warn{color:var(--amber);font-size:13px;margin-right:3px}
+.no-content-stat{color:var(--amber);font-weight:600}
+.failed-stat{color:var(--red);font-weight:600}
+
+/* Failed summary warning (same visual as no-content) */
+.card.failed-summary{border-left-color:var(--red) !important;background:#fef2f2}
+.card.failed-summary .card-sum{color:#b91c1c}
+.card.failed-summary .nc-warn{color:var(--red)}
+
+/* Insights section */
+.insights-section{padding:24px;max-width:1100px;margin:0 auto;display:none}
+.insights-section.show{display:block}
+.ins-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.ins-controls select,.ins-controls input{padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px}
+.ins-analyze-btn{padding:8px 18px;border-radius:7px;background:var(--indigo);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer}
+.ins-analyze-btn:hover{background:#4f46e5}
+.ins-analyze-btn:disabled{opacity:.5;cursor:not-allowed}
+.ins-result{margin-top:16px}
+.ins-block{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.ins-block h3{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--indigo)}
+.ins-block ul{list-style:disc;padding-left:20px;font-size:13px;color:var(--text);line-height:1.8}
+.ins-block p{font-size:13px;color:var(--text);line-height:1.8}
+.ins-loading{text-align:center;padding:24px;color:var(--muted);font-style:italic}
+
+/* Insights cards layout */
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.ins-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .15s}
+.ins-card:hover{border-color:var(--indigo);box-shadow:0 2px 12px rgba(99,102,241,.12);transform:translateY(-1px)}
+.ins-card h4{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.ins-card .ins-card-count{font-size:24px;font-weight:800;color:var(--indigo);margin-bottom:4px}
+.ins-card .ins-card-sub{font-size:11px;color:var(--muted)}
+.ins-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px}
+.ins-pill{padding:6px 14px;border-radius:16px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:#fff;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.ins-pill:hover{border-color:var(--indigo);background:#eef2ff;transform:translateY(-1px)}
+.ins-pill .ip-count{font-size:10px;background:var(--bg);padding:1px 6px;border-radius:8px;color:var(--muted)}
+.ins-pill.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}
+.ins-pill.active .ip-count{background:rgba(255,255,255,.2);color:#fff}
+.ins-inline-result{margin-top:12px;margin-bottom:24px}
+.ins-search{display:flex;gap:8px;margin-bottom:20px}
+.ins-search input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:7px;font-size:13px}
+.ins-search button{padding:8px 18px;border-radius:7px;background:var(--indigo);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer}
+.ins-search button:hover{background:#4f46e5}
+
+/* Active card highlight for keyboard nav */
+.card.kbd-active{box-shadow:0 0 0 2px var(--indigo),0 2px 8px rgba(99,102,241,.2)}
+
+/* Quick Mode keyboard hints */
+.quick-hints{display:flex;justify-content:center;gap:16px;padding:8px 0;margin-top:4px}
+.quick-hint{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--light)}
+.quick-hint kbd{background:#fff;border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px;font-family:inherit;font-weight:600;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06)}
 </style>
 </head>
 <body>
 
 <div class="hdr">
     <div>
-        <h1>TabTriage</h1>
+        <div class="hdr-brand">
+            <div class="hdr-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.236 22a3 3 0 0 0-2.2-5"/><path d="M16 20a3 3 0 0 1 3-3h1a2 2 0 0 0 2-2v-2a4 4 0 0 0-4-4V4"/><path d="M18 13h.01"/><path d="M18 6a4 4 0 0 0-4 4 7 7 0 0 0-7 7c0-5 4-5 4-10.5a4.5 4.5 0 1 0-9 0 2.5 2.5 0 0 0 5 0C7 10 3 11 3 17c0 2.8 2.2 5 5 5h10"/></svg></div>
+            <div><h1>TabTriage</h1><div class="hdr-tagline">Stop hoarding. Start focusing.</div></div>
+        </div>
         <div class="hdr-stats" id="stats"></div>
     </div>
     <div class="hdr-actions">
+        <button class="hdr-btn auto" onclick="autoTriage()">Auto-Triage</button>
         <button class="hdr-btn primary" onclick="bulkSaveAll()">Alle speichern</button>
         <button class="hdr-btn" onclick="bulkSaveAndCloseAll()">Alle speichern & schliessen</button>
         <button class="hdr-btn danger" onclick="closeTriaged()">Gespeicherte Tabs schliessen</button>
+        <button class="hdr-btn" id="batchReExtractBtn" onclick="reExtractAll()" style="display:none">Alle neu laden</button>
+        <button class="hdr-btn" id="batchReSumBtn" onclick="reSummarizeAll()" style="display:none;background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.5)">Alle zusammenfassen</button>
+        <button class="hdr-btn" onclick="openIgnoredModal()">Ignorierte Domains</button>
     </div>
 </div>
 
+<div class="progress-banner" id="progressBanner">
+    <span class="pb-label" id="pbLabel">Processing...</span>
+    <div class="pb-bar"><div class="pb-fill" id="pbFill" style="width:0%"></div></div>
+</div>
+
 <div class="tabs-nav">
-    <button class="tab-btn active" onclick="setView('triage')" data-view="triage">Triage <span class="badge-count" id="pendingCount">0</span></button>
+    <button class="tab-btn active" onclick="setView('triage')" data-view="triage">Triage <span class="badge-count" id="pendingCount" title="Offene Tabs">0</span></button>
     <button class="tab-btn" onclick="setView('archive')" data-view="archive">Archiv</button>
+    <button class="tab-btn" onclick="setView('quick')" data-view="quick">Quick</button>
+    <button class="tab-btn" onclick="setView('insights')" data-view="insights">Insights</button>
     <button class="tab-btn" onclick="setView('analytics')" data-view="analytics">Analyse</button>
 </div>
 
@@ -192,13 +375,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <select id="bulkCat"><option value="">Kategorie</option><option value="read-later">Lesen</option><option value="reference">Referenz</option><option value="actionable">Aktion</option><option value="archive">Archiv</option></select>
     <select id="bulkNotion"><option value="">Notion</option><option value="links">Links-DB</option><option value="parken">Backlog</option><option value="todo-today">Todo Heute</option><option value="todo-someday">Todo Irgendwann</option></select>
     <div class="ac-wrap"><input class="ac-input" id="bulkProj" placeholder="Projekt..." oninput="acShow(this,'bulkPL')" onfocus="acShow(this,'bulkPL')"><div class="ac-list" id="bulkPL"></div></div>
-    <button class="bbtn" style="background:var(--blue)" onclick="bulkSave()">Speichern</button>
+    <button class="bbtn" style="background:var(--indigo)" onclick="bulkSave()">Speichern</button>
     <button class="bbtn" style="background:var(--green)" onclick="bulkSave(true)">Speichern & schliessen</button>
     <button class="bbtn" style="background:var(--red)" onclick="bulkDismiss()">Verwerfen</button>
 </div>
 
 <div class="container" id="content"></div>
 <div class="analytics" id="analyticsView"></div>
+<div class="quick-view" id="quickView"></div>
+<div class="insights-section" id="insightsView"></div>
 
 <div class="ft-overlay" id="ftOverlay" onclick="if(event.target===this)closeFt()">
     <div class="ft-panel">
@@ -207,24 +392,72 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 </div>
 
+<div class="ft-overlay" id="ignoredOverlay" onclick="if(event.target===this)closeIgnoredModal()">
+    <div class="ft-panel" style="max-width:500px">
+        <div class="ft-hdr"><h3>Ignorierte Domains</h3><button class="ft-close" onclick="closeIgnoredModal()">&times;</button></div>
+        <div class="ft-body" style="white-space:normal">
+            <div style="display:flex;gap:6px;margin-bottom:16px">
+                <input type="text" id="addDomainInput" placeholder="z.B. mail.google.com" style="flex:1;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px" onkeydown="if(event.key==='Enter')addIgnoredDomain()">
+                <button class="mbtn sv" onclick="addIgnoredDomain()">Hinzufügen</button>
+            </div>
+            <div id="ignoredList"></div>
+        </div>
+    </div>
+</div>
+
+<div class="dft-banner" id="dftBanner">
+    <h3 id="dftTitle">Great job!</h3>
+    <p id="dftText">You've triaged 15 tabs. Take a break or keep going?</p>
+    <button class="dft-done" onclick="dftDone()">I'm done for today</button>
+    <button class="dft-more" onclick="dftMore(5)">5 more</button>
+    <button class="dft-keep" onclick="dftKeep()">Keep going</button>
+</div>
+
+<div class="undo-banner" id="undoBanner">
+    <span>Auto-Triage applied.</span>
+    <button onclick="undoAutoTriage()">Undo</button>
+    <span class="undo-countdown">(<span id="undoTimer">30</span>s)</span>
+</div>
+
+<div class="milestone-toast" id="milestoneToast"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const B = 'http://localhost:5111';
-const SD = /*DATA_PLACEHOLDER*/[];
+// ── Detect hosted mode vs static file mode ──────────────────
+const isHosted = location.protocol !== 'file:';
+const B = isHosted ? location.origin : 'http://localhost:5111';
+let SD = /*DATA_PLACEHOLDER*/[];
+let ignoredDomains = /*IGNORED_DOMAINS_PLACEHOLDER*/[];
 let filter = 'all', view = 'triage', projects = [], sel = new Set(), bpid = '', openCards = new Set();
+
+// ── Load data: fetch from API in hosted mode ─────────────────
+async function loadData(force) {
+    if (isHosted && (force || SD.length === 0)) {
+        try {
+            const r = await fetch(B + '/api/triage-data');
+            const d = await r.json();
+            SD = d.sessions || [];
+            ignoredDomains = d.ignored_domains || [];
+        } catch (e) {
+            console.error('Failed to load triage data:', e);
+        }
+    }
+    render();
+}
 
 fetch(B+'/api/notion/projects').then(r=>r.json()).then(p=>{projects=p}).catch(()=>{});
 
 function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 function dom(u){try{return new URL(u).hostname.replace('www.','')}catch(e){return u}}
 function fmtDate(s){if(!s)return'';try{const d=new Date(s.replace(' ','T')+'Z');return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}catch(e){return s.substring(0,16)}}
+function fmtTime(sec){if(!sec||sec<1)return'0s';if(sec<60)return sec+'s';if(sec<3600)return Math.floor(sec/60)+'m '+sec%60+'s';return Math.floor(sec/3600)+'h '+Math.floor((sec%3600)/60)+'m'}
 
 function allTabs(){let t=[];for(const s of SD)for(const x of s.tabs){x._s=s.session;t.push(x)}return t}
 
 function filtered(showArchive){
     const q=document.getElementById('searchInput').value.toLowerCase();
     let t=allTabs();
+    t=t.filter(x=>!ignoredDomains.includes(dom(x.url)));
     if(!showArchive){
         t=t.filter(x=>{
             if(filter==='starred')return x.starred&&!x.triaged_at;
@@ -232,7 +465,8 @@ function filtered(showArchive){
             return !x.triaged_at;
         });
     } else {
-        t=t.filter(x=>x.triaged_at);
+        // Archive: show triaged tabs, but exclude dismissed ones
+        t=t.filter(x=>x.triaged_at && x.category!=='dismiss');
     }
     if(q)t=t.filter(x=>[x.title,x.summary,x.url,x.user_note,x.cluster_label,...(x.tags||[])].some(v=>(v||'').toLowerCase().includes(q)));
     return t;
@@ -241,10 +475,15 @@ function filtered(showArchive){
 function setView(v){
     view=v;
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-    document.getElementById('toolbar').style.display=v==='analytics'?'none':'flex';
-    document.getElementById('content').style.display=v==='analytics'?'none':'block';
+    const isCard = v==='triage' || v==='archive';
+    document.getElementById('toolbar').style.display = isCard ? 'flex' : 'none';
+    document.getElementById('content').style.display = isCard ? 'block' : 'none';
     document.getElementById('analyticsView').classList.toggle('show',v==='analytics');
+    document.getElementById('quickView').classList.toggle('show',v==='quick');
+    document.getElementById('insightsView').classList.toggle('show',v==='insights');
     if(v==='analytics')renderAnalytics();
+    else if(v==='quick')renderQuick();
+    else if(v==='insights')renderInsights();
     else render();
 }
 
@@ -254,14 +493,37 @@ function setFilter(f){
     render();
 }
 
-function render(){
-    const all=allTabs(), tabs=filtered(view==='archive');
-    const pending=all.filter(x=>!x.triaged_at).length;
-    const starred=all.filter(x=>x.starred).length;
-    document.getElementById('stats').textContent=`${all.length} Tabs | ${all.length-pending} gespeichert | ${pending} offen | ${starred} gemerkt`;
-    document.getElementById('pendingCount').textContent=pending;
+function searchFor(term){
+    document.getElementById('searchInput').value=term;
+    filter='all';
+    document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.filter==='all'));
+    setView('triage');
+}
 
-    if(!tabs.length){document.getElementById('content').innerHTML='<div class="empty">Keine Tabs.</div>';updateBulk();return}
+function filterByTag(tag){
+    document.getElementById('searchInput').value=tag;
+    setView('archive');
+    render();
+}
+
+function render(){
+    const allRaw=allTabs(), all=allRaw.filter(x=>!ignoredDomains.includes(dom(x.url))), tabs=filtered(view==='archive');
+    const pending=all.filter(x=>!x.triaged_at).length;
+    const saved=all.filter(x=>x.triaged_at && x.category!=='dismiss').length;
+    const starred=all.filter(x=>x.starred).length;
+    const noContentCount = all.filter(x => !x.triaged_at && (x.summary||'').startsWith('[Kein ausreichender')).length;
+    const failedSumCount = all.filter(x => !x.triaged_at && x.has_content && (x.summary||'').startsWith('[Zusammenfassung fehlgeschlagen:')).length;
+    const statsEl = document.getElementById('stats');
+    statsEl.innerHTML = `${all.length} Tabs | ${saved} gespeichert | ${pending} offen | ${starred} gemerkt` +
+        (noContentCount > 0 ? ` | <span class="no-content-stat">${noContentCount} ohne Content</span>` : '') +
+        (failedSumCount > 0 ? ` | <span class="failed-stat">${failedSumCount} fehlgeschlagen</span>` : '');
+    document.getElementById('pendingCount').textContent=pending;
+    const batchBtn = document.getElementById('batchReExtractBtn');
+    if (batchBtn) batchBtn.style.display = noContentCount > 0 ? '' : 'none';
+    const batchSumBtn = document.getElementById('batchReSumBtn');
+    if (batchSumBtn) batchSumBtn.style.display = failedSumCount > 0 ? '' : 'none';
+
+    if(!tabs.length){document.getElementById('content').innerHTML='<div class="empty">'+(view==='archive'?'Noch keine archivierten Tabs.':'Keine offenen Tabs. Alles erledigt!')+'</div>';updateBulk();return}
 
     // Group by cluster
     const clusters={},other=[];
@@ -287,42 +549,47 @@ function render(){
 
 function cardH(t){
     const cat=t.category||t.suggested_category||'pending';
+    const isNoContent=(t.summary||'').startsWith('[Kein ausreichender');
+    const isFailedSum=t.has_content && (t.summary||'').startsWith('[Zusammenfassung fehlgeschlagen:');
     const o=openCards.has(t.id)?'open':'';
     const s=sel.has(t.id)?'selected':'';
     const d=t.triaged_at&&view!=='archive'?'done':'';
+    const nc=isNoContent?'no-content':isFailedSum?'failed-summary':'';
     const fav=t.favicon?`<img class="card-fav" src="${esc(t.favicon)}" onerror="this.style.display='none'">`:'';
     const thumb=t.og_image?`<img class="card-thumb" src="${esc(t.og_image)}" onerror="this.style.display='none'">`:'';
     const pn=t.project_id?(projects.find(p=>p.id===t.project_id)||{}).name||'':'';
-    const tags=(t.tags||[]).map(g=>`<span class="tag">${esc(g)}</span>`).join('');
+    const tags=(t.tags||[]).map(g=>`<span class="tag" onclick="filterByTag('${esc(g)}');event.stopPropagation()">${esc(g)}</span>`).join('');
     const media=t.media&&t.media.length?t.media.map(m=>{
         if(m.type==='video')return`<video controls preload="none"${m.poster?' poster="'+esc(m.poster)+'"':''}><source src="${esc(m.src)}"></video>`;
         if(m.type==='audio')return`<audio controls preload="none"><source src="${esc(m.src)}"></audio>`;
         if(m.type==='embed')return`<iframe src="${esc(m.src)}" style="width:100%;height:200px;border:none;border-radius:6px" allowfullscreen></iframe>`;
         return'';
     }).join(''):'';
+    const warnIcon=(isNoContent||isFailedSum)?'<span class="nc-warn">&#9888;</span>':'';
 
-    return`<div class="card cat-${cat} ${s} ${d} ${o}" id="c${t.id}" data-id="${t.id}">
+    return`<div class="card cat-${cat} ${nc} ${s} ${d} ${o}" id="c${t.id}" data-id="${t.id}">
 <div class="card-ck"><input type="checkbox" ${sel.has(t.id)?'checked':''} onchange="togSel(${t.id})" onclick="event.stopPropagation()"><button class="star ${t.starred?'on':''}" onclick="togStar(${t.id});event.stopPropagation()">&#9733;</button></div>
 <div class="card-main" onclick="togOpen(${t.id})">
-<div class="card-top">${fav}<span class="card-ttl"><a href="${esc(t.url)}" target="_blank" onclick="event.stopPropagation()">${esc(t.title)}</a></span><span class="card-dom">${esc(dom(t.url))}</span>${tags?`<div class="card-tags">${tags}</div>`:''}</div>
-<div class="card-meta"><span>${fmtDate(t.captured_at)}</span>${t._s&&t._s.hostname?`<span>${esc(t._s.hostname)}</span>`:''}</div>
+<div class="card-top">${fav}${warnIcon}<span class="card-ttl"><a href="${esc(t.url)}" target="_blank" onclick="event.stopPropagation()">${esc(t.title)}</a></span>${isNoContent?`<button class="re-extract-btn" id="re${t.id}" onclick="reExtract(${t.id});event.stopPropagation()" title="Content nachladen (Extension → trafilatura Fallback)"><span class="re-icon">&#x21bb;</span> Neu laden</button>`:''}${isFailedSum?`<button class="re-extract-btn" id="rs${t.id}" onclick="reSummarize(${t.id});event.stopPropagation()" title="Zusammenfassung neu generieren" style="background:var(--red)"><span class="re-icon">&#x21bb;</span> Zusammenfassen</button>`:''}<span class="card-dom">${esc(dom(t.url))}</span>${tags?`<div class="card-tags">${tags}</div>`:''}</div>
+<div class="card-meta"><span>${fmtDate(t.captured_at)}</span>${t._s&&t._s.hostname?`<span>${esc(t._s.hostname)}</span>`:''}${t.behavior_data?`<span title="Scroll: ${t.behavior_data.scroll_depth_pct}%, Active: ${t.behavior_data.active_time_sec}s, Clicks: ${t.behavior_data.click_count}">📊 ${t.behavior_data.scroll_depth_pct}% · ${fmtTime(t.behavior_data.active_time_sec)} · ${t.behavior_data.click_count}↗</span>`:''}</div>
 <div class="card-body">${thumb?'<div>'+thumb+'</div>':''}<div class="card-info"><div class="card-sum ${t.summary?'':'loading'} ${o?'expanded':''}">${esc(t.summary||'Wird zusammengefasst...')}</div></div></div>
 <div class="card-ctrl" onclick="event.stopPropagation()">
 <select onchange="setF(${t.id},'_cat',this.value)"><option value="">Kategorie</option><option value="read-later" ${cat==='read-later'?'selected':''}>Lesen</option><option value="reference" ${cat==='reference'?'selected':''}>Referenz</option><option value="actionable" ${cat==='actionable'?'selected':''}>Aktion</option><option value="archive" ${cat==='archive'?'selected':''}>Archiv</option></select>
 <div class="ac-wrap"><input class="ac-input" value="${esc(pn)}" placeholder="Projekt..." data-tid="${t.id}" oninput="acShow(this,'al${t.id}')" onfocus="acShow(this,'al${t.id}')" onclick="event.stopPropagation()"><div class="ac-list" id="al${t.id}"></div></div>
 <select onchange="setF(${t.id},'_notion',this.value)"><option value="">Notion</option><option value="links">Links-DB</option><option value="parken">Backlog</option><option value="project">Projekt</option><option value="todo-today">Todo Heute</option><option value="todo-someday">Todo Irgendwann</option></select>
 ${t.has_content?`<button class="mbtn" onclick="openFt(${t.id})">Volltext</button>`:''}
+<button class="mbtn" onclick="window.open('${esc(t.url)}','_blank');event.stopPropagation()" title="URL in neuem Tab öffnen">&#x2197; Öffnen</button>
 <button class="mbtn sv" onclick="save1(${t.id})">Speichern</button>
 <button class="mbtn sc" onclick="save1(${t.id},true)">Speichern & schliessen</button>
 <button class="mbtn cl" onclick="dismiss1(${t.id})">Verwerfen</button>
 <button class="mbtn" onclick="closeTab(${t.id})">Nur schliessen</button>
+<button class="mbtn td" onclick="ignoreDomain(${t.id});event.stopPropagation()">Domain ignorieren</button>
 ${t.triaged_at?'<span class="mbtn dn">&#10003;</span>':''}
 </div>
 ${media?`<div class="card-media">${media}</div>`:''}
 </div></div>`;
 }
 
-// Toggle card open/close
 function togOpen(id){
     if(openCards.has(id))openCards.delete(id);else openCards.add(id);
     const el=document.getElementById('c'+id);
@@ -347,17 +614,73 @@ async function togStar(id){
 
 function getState(t){return{tab_id:t.id,category:t._cat||t.category||t.suggested_category||'read-later',project_id:t._pid||t.project_id||null,notion_target:t._notion||null}}
 
+// ── Done for today / Micro-rewards ──────────────────────────
+let triageCount = 0;
+let dftThreshold = parseInt(localStorage.getItem('dft_threshold') || '15');
+let dftEnabled = localStorage.getItem('dft_disabled') !== 'true';
+let dftPaused = false;
+let dftExtraAllowed = 0;
+const sessionStart = Date.now();
+
+function onTriaged(count) {
+    triageCount += (count || 1);
+    if (triageCount === 10) showMilestone('10 tabs done!');
+    else if (triageCount === 25) showMilestone('25 tabs! You\'re on fire!');
+    else if (triageCount === 50) showMilestone('50 tabs! Legendary!');
+
+    const pending = allTabs().filter(x => !x.triaged_at && !ignoredDomains.includes(dom(x.url))).length;
+    if (pending === 0 && triageCount > 0) {
+        showMilestone('All clear!');
+        showSessionSummary();
+    }
+    const effectiveThreshold = dftThreshold + dftExtraAllowed;
+    if (dftEnabled && !dftPaused && triageCount >= effectiveThreshold && pending > 0) {
+        showDftBanner(pending);
+    }
+}
+
+function showMilestone(text) {
+    const el = document.getElementById('milestoneToast');
+    el.textContent = text;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function showSessionSummary() {
+    const elapsed = Math.round((Date.now() - sessionStart) / 60000);
+    const saved = allTabs().filter(x => x.triaged_at && x.category !== 'dismiss').length;
+    const dismissed = allTabs().filter(x => x.category === 'dismiss').length;
+    showToast(`Session: ${triageCount} tabs in ${elapsed}min. ${saved} saved, ${dismissed} dismissed.`);
+}
+
+function showDftBanner(remaining) {
+    document.getElementById('dftTitle').textContent = 'Great job!';
+    document.getElementById('dftText').textContent = `You've triaged ${triageCount} tabs. ${remaining} remaining. Take a break or keep going?`;
+    document.getElementById('dftBanner').classList.add('show');
+}
+
+function dftDone() {
+    dftPaused = true;
+    document.getElementById('dftBanner').classList.remove('show');
+    showSessionSummary();
+    showToast('Rest well! Your remaining tabs will be here tomorrow.');
+}
+function dftMore(n) { dftExtraAllowed += n; document.getElementById('dftBanner').classList.remove('show'); }
+function dftKeep() { dftEnabled = false; document.getElementById('dftBanner').classList.remove('show'); }
+
+// ── Save / Dismiss / Close ───────────────────────────────────
+
 async function save1(id,close){
     const t=allTabs().find(x=>x.id===id);if(!t)return;
     const s=getState(t);
     try{
-        const r=await fetch(B+'/api/triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
-        await r.json();
+        await fetch(B+'/api/triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(s)});
         t.category=s.category;t.project_id=s.project_id;t.triaged_at=new Date().toISOString();
         if(close){await fetch(B+'/api/tabs/'+id+'/request-close',{method:'POST'})}
         const el=document.getElementById('c'+id);
         if(el){el.classList.add('done');setTimeout(()=>{el.classList.add('hiding');setTimeout(()=>render(),400)},300)}
         showToast(close?'Gespeichert + Tab wird geschlossen':'Gespeichert');
+        onTriaged(1);
     }catch(e){showToast('Fehler: '+e.message)}
 }
 
@@ -370,13 +693,23 @@ async function dismiss1(id){
         const el=document.getElementById('c'+id);
         if(el){el.classList.add('done');setTimeout(()=>{el.classList.add('hiding');setTimeout(()=>render(),400)},300)}
         showToast('Verworfen + Tab geschlossen');
+        onTriaged(1);
     }catch(e){showToast('Fehler: '+e.message)}
 }
 
 async function closeTab(id){
+    const t=allTabs().find(x=>x.id===id);
+    // In archive: just request close, hide card
+    // In triage: also dismiss so it doesn't reappear
+    if(view !== 'archive') {
+        await fetch(B+'/api/triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tab_id:id,category:'dismiss'})});
+        if(t){t.category='dismiss';t.triaged_at=new Date().toISOString()}
+    }
     await fetch(B+'/api/tabs/'+id+'/request-close',{method:'POST'});
+    // Mark locally as closed so it hides in archive too
+    if(t) t._closed = true;
     const el=document.getElementById('c'+id);
-    if(el){el.classList.add('hiding');setTimeout(()=>render(),400)}
+    if(el){el.classList.add('done');setTimeout(()=>{el.classList.add('hiding');setTimeout(()=>render(),400)},300)}
     showToast('Tab wird geschlossen');
 }
 
@@ -397,7 +730,7 @@ async function bulkSave(close){
             await fetch(B+'/api/tabs/request-close-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tab_ids:ids})});
         }
         for(const i of items){const t=allTabs().find(x=>x.id===i.tab_id);if(t){t.category=i.category;t.project_id=i.project_id;t.triaged_at=new Date().toISOString()}}
-        sel.clear();showToast(`${items.length} gespeichert!`);render();
+        sel.clear();showToast(`${items.length} gespeichert!`);onTriaged(items.length);render();
     }catch(e){showToast('Fehler: '+e.message)}
 }
 
@@ -408,7 +741,7 @@ async function bulkDismiss(){
         await fetch(B+'/api/triage/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
         await fetch(B+'/api/tabs/request-close-bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tab_ids:ids})});
         for(const i of items){const t=allTabs().find(x=>x.id===i.tab_id);if(t){t.category='dismiss';t.triaged_at=new Date().toISOString()}}
-        sel.clear();showToast(`${items.length} verworfen + Tabs geschlossen`);render();
+        sel.clear();showToast(`${items.length} verworfen + Tabs geschlossen`);onTriaged(items.length);render();
     }catch(e){showToast('Fehler: '+e.message)}
 }
 
@@ -419,14 +752,14 @@ async function bulkSaveAll(){
     try{
         await fetch(B+'/api/triage/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items})});
         for(const i of items){const t=allTabs().find(x=>x.id===i.tab_id);if(t){t.category=i.category;t.triaged_at=new Date().toISOString()}}
-        showToast(`${items.length} gespeichert!`);render();
+        showToast(`${items.length} gespeichert!`);onTriaged(items.length);render();
     }catch(e){showToast('Fehler: '+e.message)}
 }
 
 async function bulkSaveAndCloseAll(){await bulkSaveAll();await closeTriaged()}
 
 async function closeTriaged(){
-    const triaged=allTabs().filter(t=>t.triaged_at);
+    const triaged=allTabs().filter(t=>t.triaged_at&&t.category!=='dismiss');
     if(!triaged.length){showToast('Keine gespeicherten Tabs');return}
     const ids=triaged.map(t=>t.id);
     try{
@@ -435,7 +768,274 @@ async function closeTriaged(){
     }catch(e){showToast('Fehler: '+e.message)}
 }
 
-// Fulltext overlay
+// ── Auto-Triage ──────────────────────────────────────────────
+let _lastAutoTriageBatchId = null;
+let _undoTimer = null;
+
+async function autoTriage() {
+    const pending = allTabs().filter(x => !x.triaged_at && x.suggested_category).length;
+    if (!pending) { showToast('No tabs to auto-triage'); return; }
+    try {
+        const pr = await fetch(B + '/api/triage/auto/preview');
+        const preview = await pr.json();
+        if (!preview.total) { showToast('No tabs to auto-triage'); return; }
+        const c = preview.counts;
+        const msg = `Auto-Triage ${preview.total} Tabs?\n\n` +
+            `  Read later: ${c['read-later'] || 0}\n` +
+            `  Reference: ${c['reference'] || 0}\n` +
+            `  Actionable: ${c['actionable'] || 0} (get starred)\n` +
+            `  Archive: ${c['archive'] || 0} (will be closed)\n\n` +
+            `You can undo this for 30 seconds.`;
+        if (!confirm(msg)) return;
+        showToast(`Auto-triaging ${preview.total} tabs...`);
+        const r = await fetch(B + '/api/triage/auto', { method: 'POST' });
+        const d = await r.json();
+        // Always reload from API for consistency
+        await loadData(true);
+        showMilestone(`Auto-triaged ${d.total} tabs!`);
+        showToast(`${d.saved} saved, ${d.archived} archived, ${d.starred} starred`);
+        onTriaged(d.total);
+        if (d.batch_id) { _lastAutoTriageBatchId = d.batch_id; showUndoBanner(d.total); }
+    } catch (e) { showToast('Error: ' + e.message); }
+}
+
+function showUndoBanner(count) {
+    const banner = document.getElementById('undoBanner');
+    const timer = document.getElementById('undoTimer');
+    banner.classList.add('show');
+    let remaining = 30;
+    timer.textContent = remaining;
+    if (_undoTimer) clearInterval(_undoTimer);
+    _undoTimer = setInterval(() => {
+        remaining--;
+        timer.textContent = remaining;
+        if (remaining <= 0) { clearInterval(_undoTimer); banner.classList.remove('show'); _lastAutoTriageBatchId = null; }
+    }, 1000);
+}
+
+async function undoAutoTriage() {
+    if (!_lastAutoTriageBatchId) { showToast('Nothing to undo'); return; }
+    try {
+        await fetch(B + '/api/triage/auto/undo', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ batch_id: _lastAutoTriageBatchId })
+        });
+        _lastAutoTriageBatchId = null;
+        if (_undoTimer) clearInterval(_undoTimer);
+        document.getElementById('undoBanner').classList.remove('show');
+        await loadData(true);
+        showToast('Undo successful');
+    } catch (e) { showToast('Undo failed: ' + e.message); }
+}
+
+// ── Quick Mode ───────────────────────────────────────────────
+let quickTabs = [];
+let quickIdx = 0;
+let quickTriaged = { saved: 0, dismissed: 0, starred: 0 };
+
+function renderQuick() {
+    quickTabs = allTabs().filter(x => !x.triaged_at && !ignoredDomains.includes(dom(x.url)));
+    quickIdx = 0;
+    quickTriaged = { saved: 0, dismissed: 0, starred: 0 };
+    renderQuickCard();
+}
+
+function renderQuickCard() {
+    const el = document.getElementById('quickView');
+    if (quickIdx >= quickTabs.length) {
+        el.innerHTML = `<div class="quick-done"><h2>All done!</h2><p>${quickTriaged.saved} saved, ${quickTriaged.dismissed} dismissed, ${quickTriaged.starred} starred</p><button class="mbtn sc" onclick="loadData(true).then(()=>setView('triage'))" style="margin-top:12px;padding:8px 20px;font-size:14px">Back to Triage</button></div>`;
+        return;
+    }
+    const t = quickTabs[quickIdx];
+    const total = quickTabs.length;
+    const pct = total > 0 ? Math.round((quickIdx / total) * 100) : 0;
+    const tags = (t.tags || []).map(g => `<span class="tag">${esc(g)}</span>`).join('');
+    const thumb = t.og_image ? `<img class="qc-thumb" src="${esc(t.og_image)}" onerror="this.style.display='none'">` : '';
+
+    const fav = t.favicon ? `<img src="${esc(t.favicon)}" style="width:14px;height:14px;border-radius:2px" onerror="this.style.display='none'">` : '';
+    const cat = t.suggested_category || '';
+    const catLabel = {'read-later':'Lesen','reference':'Referenz','actionable':'Aktion','archive':'Archiv'}[cat] || '';
+    const catColor = {'read-later':'var(--blue)','reference':'var(--purple)','actionable':'var(--amber)','archive':'var(--light)'}[cat] || 'var(--muted)';
+
+    // Fetch content teaser async
+    el.innerHTML = `
+        <div class="quick-progress">
+            <span class="qp-label">${quickIdx + 1} / ${total}</span>
+            <div class="qp-bar"><div class="qp-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="quick-card" id="qcard">
+            ${thumb}
+            <div class="qc-title"><a href="${esc(t.url)}" target="_blank">${esc(t.title)}</a></div>
+            <div class="qc-meta">${fav}<span>${esc(dom(t.url))}</span>${catLabel ? `<span style="color:${catColor};font-weight:600">${catLabel}</span>` : ''}${t.starred ? '<span style="color:var(--amber)">&#9733;</span>' : ''}${fmtDate(t.captured_at) ? `<span>${fmtDate(t.captured_at)}</span>` : ''}</div>
+            ${tags ? `<div class="qc-tags">${tags}</div>` : ''}
+            <div class="qc-summary">${esc(t.summary || 'No summary yet...')}</div>
+            <div class="qc-content" id="qcContent"></div>
+        </div>
+        <div class="quick-btns">
+            <button class="qb-dismiss" onclick="quickDismiss()">&#10005; Verwerfen</button>
+            <button class="qb-skip" onclick="quickSkip()">&#8595; Skip</button>
+            <button class="qb-star" onclick="quickStar()">&#9733; Stern</button>
+            <button class="qb-save" onclick="quickSave()">&#10003; Speichern & Schlie&szlig;en</button>
+        </div>
+        <div class="quick-hints">
+            <span class="quick-hint"><kbd>&larr;</kbd> Verwerfen</span>
+            <span class="quick-hint"><kbd>&darr;</kbd> Skip</span>
+            <span class="quick-hint"><kbd>S</kbd> Stern</span>
+            <span class="quick-hint"><kbd>&rarr;</kbd> Speichern</span>
+            <span class="quick-hint"><kbd>Space</kbd> Volltext</span>
+        </div>`;
+
+    // Load content teaser async
+    if (t.has_content) {
+        fetch(B + '/api/tabs/' + t.id + '/content').then(r => r.json()).then(d => {
+            const el = document.getElementById('qcContent');
+            if (el && d.content) el.textContent = d.content.substring(0, 600);
+        }).catch(() => {});
+    }
+}
+
+async function quickSave() {
+    const t = quickTabs[quickIdx]; if (!t) return;
+    animateQuickCard('swipe-right');
+    const cat = t.suggested_category || 'read-later';
+    await fetch(B + '/api/triage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tab_id: t.id, category: cat }) });
+    await fetch(B + '/api/tabs/' + t.id + '/request-close', { method: 'POST' });
+    t.category = cat; t.triaged_at = new Date().toISOString();
+    quickTriaged.saved++; onTriaged(1); quickNext();
+}
+
+async function quickDismiss() {
+    const t = quickTabs[quickIdx]; if (!t) return;
+    animateQuickCard('swipe-left');
+    await fetch(B + '/api/triage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tab_id: t.id, category: 'dismiss' }) });
+    await fetch(B + '/api/tabs/' + t.id + '/request-close', { method: 'POST' });
+    t.category = 'dismiss'; t.triaged_at = new Date().toISOString();
+    quickTriaged.dismissed++; onTriaged(1); quickNext();
+}
+
+async function quickStar() {
+    const t = quickTabs[quickIdx]; if (!t) return;
+    animateQuickCard('swipe-up');
+    await fetch(B + '/api/triage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tab_id: t.id, category: t.suggested_category || 'read-later', starred: true }) });
+    t.starred = 1; t.category = t.suggested_category || 'read-later'; t.triaged_at = new Date().toISOString();
+    quickTriaged.starred++; onTriaged(1); quickNext();
+}
+
+async function quickSkip() {
+    // Skip without triaging — just move to next card
+    quickNext();
+}
+
+function animateQuickCard(cls) { const el = document.getElementById('qcard'); if (el) el.classList.add(cls); }
+function quickNext() { quickIdx++; setTimeout(renderQuickCard, 300); }
+
+// ── Re-Extract (server-side) ─────────────────────────────────
+
+async function reExtract(id) {
+    const btn = document.getElementById('re' + id);
+    if (btn) btn.classList.add('spinning');
+    try {
+        const resp = await fetch(B + '/api/tabs/' + id + '/request-re-extract', { method: 'POST' });
+        if (!resp.ok) { showToast('Fehler: ' + resp.status + ' ' + resp.statusText); if (btn) btn.classList.remove('spinning'); return; }
+        showToast('Content wird nachgeladen (Extension → trafilatura)...');
+        // Poll for completion (check if summary changed)
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            if (attempts > 40) { clearInterval(poll); if (btn) btn.classList.remove('spinning'); showToast('Extract dauert zu lange — prüfe später.'); return; }
+            try {
+                const r = await fetch(B + '/api/tabs/' + id);
+                const t = await r.json();
+                if (t.summary && !t.summary.startsWith('[Kein ausreichender') && !t.summary.startsWith('[Zusammenfassung fehlgeschlagen:')) {
+                    clearInterval(poll);
+                    if (btn) btn.classList.remove('spinning');
+                    const local = allTabs().find(x => x.id === id);
+                    if (local) { local.summary = t.summary; local.tags = t.tags; local.suggested_category = t.suggested_category; local.has_content = true; }
+                    render();
+                    showToast('Content erfolgreich extrahiert!');
+                }
+            } catch (e) {}
+        }, 3000);
+    } catch (e) { showToast('Fehler: ' + e.message); if (btn) btn.classList.remove('spinning'); }
+}
+
+async function reExtractAll() {
+    try {
+        const r = await fetch(B + '/api/tabs/request-re-extract-batch', { method: 'POST' });
+        const d = await r.json();
+        if (d.status === 'none') { showToast('Keine Tabs ohne Content.'); return; }
+        showToast(`${d.count} Tabs werden server-seitig nachgeladen...`);
+        // Poll batch progress
+        const batchId = d.batch_id;
+        const poll = setInterval(async () => {
+            try {
+                const pr = await fetch(B + '/api/tabs/re-extract-progress/' + batchId);
+                const p = await pr.json();
+                if (p.done) {
+                    clearInterval(poll);
+                    showToast(`Fertig: ${p.completed} extrahiert, ${p.failed} fehlgeschlagen`);
+                    await loadData(true);
+                } else {
+                    showToast(`Extrahiere... ${p.completed + p.failed}/${p.total}`);
+                }
+            } catch (e) { clearInterval(poll); }
+        }, 5000);
+    } catch (e) { showToast('Fehler: ' + e.message); }
+}
+
+// ── Re-Summarize (for tabs with content but failed summary) ──
+
+async function reSummarize(id) {
+    const btn = document.getElementById('rs' + id);
+    if (btn) btn.classList.add('spinning');
+    try {
+        const resp = await fetch(B + '/api/tabs/' + id + '/re-summarize', { method: 'POST' });
+        if (!resp.ok) { showToast('Fehler: ' + resp.status + ' ' + resp.statusText); if (btn) btn.classList.remove('spinning'); return; }
+        showToast('Zusammenfassung wird neu generiert...');
+        let attempts = 0;
+        const poll = setInterval(async () => {
+            attempts++;
+            if (attempts > 40) { clearInterval(poll); if (btn) btn.classList.remove('spinning'); showToast('Zusammenfassung dauert zu lange.'); return; }
+            try {
+                const r = await fetch(B + '/api/tabs/' + id);
+                const t = await r.json();
+                if (t.summary && !t.summary.startsWith('[Zusammenfassung fehlgeschlagen:') && !t.summary.startsWith('[Kein ausreichender')) {
+                    clearInterval(poll);
+                    if (btn) btn.classList.remove('spinning');
+                    const local = allTabs().find(x => x.id === id);
+                    if (local) { local.summary = t.summary; local.tags = t.tags; local.suggested_category = t.suggested_category; }
+                    render();
+                    showToast('Zusammenfassung erfolgreich!');
+                }
+            } catch (e) {}
+        }, 3000);
+    } catch (e) { showToast('Fehler: ' + e.message); if (btn) btn.classList.remove('spinning'); }
+}
+
+async function reSummarizeAll() {
+    try {
+        const r = await fetch(B + '/api/tabs/re-summarize-batch', { method: 'POST' });
+        const d = await r.json();
+        if (d.status === 'none') { showToast('Keine Tabs mit fehlgeschlagener Zusammenfassung.'); return; }
+        showToast(`${d.count} Tabs werden neu zusammengefasst...`);
+        const batchId = d.batch_id;
+        const poll = setInterval(async () => {
+            try {
+                const pr = await fetch(B + '/api/tabs/re-summarize-progress/' + batchId);
+                const p = await pr.json();
+                if (p.done) {
+                    clearInterval(poll);
+                    showToast(`Fertig: ${p.completed} zusammengefasst, ${p.failed} fehlgeschlagen`);
+                    await loadData(true);
+                } else {
+                    showToast(`Zusammenfassen... ${p.completed + p.failed}/${p.total}`);
+                }
+            } catch (e) { clearInterval(poll); }
+        }, 5000);
+    } catch (e) { showToast('Fehler: ' + e.message); }
+}
+
+// ── Fulltext overlay ─────────────────────────────────────────
 async function openFt(id){
     const t=allTabs().find(x=>x.id===id);
     document.getElementById('ftTitle').textContent=t?t.title:'';
@@ -451,7 +1051,7 @@ function closeFt(){document.getElementById('ftOverlay').classList.remove('open')
 
 // Autocomplete
 function acShow(inp,lid){
-    const l=document.getElementById(lid);
+    const l=document.getElementById(lid);if(!l)return;
     const q=inp.value.toLowerCase();
     const m=projects.filter(p=>p.name.toLowerCase().includes(q)).slice(0,12);
     if(!m.length){l.classList.remove('open');return}
@@ -479,62 +1079,448 @@ function initSwipe(){
         card.addEventListener('touchend',()=>{
             card.classList.remove('swiping');
             const id=parseInt(card.dataset.id);
-            if(dx>80){save1(id,true);} // swipe right = save & close
-            else if(dx<-80){dismiss1(id);} // swipe left = dismiss
+            if(dx>80){save1(id,true);}
+            else if(dx<-80){dismiss1(id);}
             else{card.style.transform='';card.style.opacity=''}
         },{passive:true});
     });
 }
 
-// Analytics
+// ── Analytics (redesigned) ───────────────────────────────────
 function renderAnalytics(){
     const tabs=allTabs();
+    const nonIgnored=tabs.filter(x=>!ignoredDomains.includes(dom(x.url)));
+
     // Sources
-    const sources={};tabs.forEach(t=>{const d=dom(t.url);sources[d]=(sources[d]||0)+1});
-    const srcSorted=Object.entries(sources).sort((a,b)=>b[1]-a[1]).slice(0,15);
+    const sources={};nonIgnored.forEach(t=>{const d=dom(t.url);sources[d]=(sources[d]||0)+1});
+    const srcSorted=Object.entries(sources).sort((a,b)=>b[1]-a[1]);
     const srcMax=srcSorted[0]?srcSorted[0][1]:1;
+    const colors=['#6366f1','#3b82f6','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899'];
 
     // Tags
-    const tagCounts={};tabs.forEach(t=>(t.tags||[]).forEach(g=>{tagCounts[g]=(tagCounts[g]||0)+1}));
-    const tagSorted=Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).slice(0,20);
-    const tagMax=tagSorted[0]?tagSorted[0][1]:1;
+    const tagCounts={};nonIgnored.forEach(t=>(t.tags||[]).forEach(g=>{tagCounts[g]=(tagCounts[g]||0)+1}));
+    const tagSorted=Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]);
 
     // Categories
-    const cats={};tabs.forEach(t=>{const c=t.category||t.suggested_category||'pending';cats[c]=(cats[c]||0)+1});
+    const cats={'read-later':0,'reference':0,'actionable':0,'archive':0,'dismiss':0,'pending':0};
+    nonIgnored.forEach(t=>{const c=t.category||t.suggested_category||'pending';cats[c]=(cats[c]||0)+1});
+    const catColors={'read-later':'#3b82f6','reference':'#8b5cf6','actionable':'#f59e0b','archive':'#94a3b8','dismiss':'#ef4444','pending':'#e2e8f0'};
 
     // Clusters
-    const clust={};tabs.forEach(t=>{if(t.cluster_label){clust[t.cluster_label]=(clust[t.cluster_label]||0)+1}});
-    const clustSorted=Object.entries(clust).sort((a,b)=>b[1]-a[1]);
+    const clust={};nonIgnored.forEach(t=>{if(t.cluster_label){clust[t.cluster_label]=(clust[t.cluster_label]||0)+1}});
 
     // Dates
-    const dates={};tabs.forEach(t=>{const d=(t.captured_at||'').substring(0,10);if(d)dates[d]=(dates[d]||0)+1});
+    const dates={};nonIgnored.forEach(t=>{const d=(t.captured_at||'').substring(0,10);if(d)dates[d]=(dates[d]||0)+1});
+    const dateSorted=Object.entries(dates).sort();
+    const dateMax=Math.max(...Object.values(dates),1);
 
-    let h=`<div class="ana-grid">`;
+    // Computed insights
+    const triaged=nonIgnored.filter(t=>t.triaged_at);
+    const untriaged=nonIgnored.filter(t=>!t.triaged_at);
+    const starred=nonIgnored.filter(t=>t.starred);
+    const withContent=nonIgnored.filter(t=>t.has_content!==false);
+    const uniqueDomains=Object.keys(sources).length;
+    const avgTabsPerSession = SD.length > 0 ? Math.round(nonIgnored.length / SD.length) : 0;
+    const topDomain = srcSorted[0] ? srcSorted[0][0] : '-';
+    const topTag = tagSorted[0] ? tagSorted[0][0] : '-';
+    const triageRate = nonIgnored.length > 0 ? Math.round((triaged.length / nonIgnored.length) * 100) : 0;
+    const dismissRate = triaged.length > 0 ? Math.round((cats['dismiss'] / triaged.length) * 100) : 0;
+    const starRate = nonIgnored.length > 0 ? Math.round((starred.length / nonIgnored.length) * 100) : 0;
+    const contentRate = nonIgnored.length > 0 ? Math.round((withContent.length / nonIgnored.length) * 100) : 0;
 
-    h+=`<div class="ana-card"><h3>Quellen (${Object.keys(sources).length})</h3>${srcSorted.map(([d,n])=>`<div class="ana-bar"><span class="ana-bar-label">${esc(d)}</span><div class="ana-bar-fill" style="width:${n/srcMax*100}%"></div><span class="ana-bar-val">${n}</span></div>`).join('')}</div>`;
+    let h = '';
 
-    h+=`<div class="ana-card"><h3>Tags (${Object.keys(tagCounts).length})</h3>${tagSorted.map(([g,n])=>`<div class="ana-bar"><span class="ana-bar-label">${esc(g)}</span><div class="ana-bar-fill" style="width:${n/tagMax*100}%;background:var(--purple)"></div><span class="ana-bar-val">${n}</span></div>`).join('')}</div>`;
+    // ── Stats overview row ──
+    h += `<div class="ana-section"><div class="stat-row">
+        <div class="stat-card"><div class="stat-val">${nonIgnored.length}</div><div class="stat-label">Tabs erfasst</div></div>
+        <div class="stat-card"><div class="stat-val">${triaged.length}</div><div class="stat-label">Triaged</div></div>
+        <div class="stat-card"><div class="stat-val">${untriaged.length}</div><div class="stat-label">Offen</div></div>
+        <div class="stat-card"><div class="stat-val">${starred.length}</div><div class="stat-label">Gemerkt</div></div>
+        <div class="stat-card"><div class="stat-val">${SD.length}</div><div class="stat-label">Sessions</div></div>
+        <div class="stat-card"><div class="stat-val">${uniqueDomains}</div><div class="stat-label">Quellen</div></div>
+    </div></div>`;
 
-    h+=`<div class="ana-card"><h3>Kategorien</h3>${Object.entries(cats).map(([c,n])=>`<div class="ana-bar"><span class="ana-bar-label">${esc(c)}</span><div class="ana-bar-fill" style="width:${n/tabs.length*100}%;background:var(--amber)"></div><span class="ana-bar-val">${n}</span></div>`).join('')}</div>`;
+    // ── Categories ──
+    h += `<div class="ana-section"><h2>Kategorien</h2><div class="cat-pills">`;
+    for(const[c,n]of Object.entries(cats)){
+        if(c==='pending'&&n===0)continue;
+        const label={'read-later':'Lesen','reference':'Referenz','actionable':'Aktion','archive':'Archiv','dismiss':'Verworfen','pending':'Offen'}[c]||c;
+        h+=`<div class="cat-pill" onclick="setFilter('${c==='pending'?'all':c}');setView('${c==='dismiss'||c==='archive'?'archive':'triage'}')"><div class="cp-dot" style="background:${catColors[c]||'#ccc'}"></div><div class="cp-name">${label}</div><div class="cp-count">${n}</div></div>`;
+    }
+    h += `</div></div>`;
 
-    h+=`<div class="ana-card"><h3>Themen-Cluster</h3>${clustSorted.map(([c,n])=>`<div class="ana-bar"><span class="ana-bar-label">${esc(c)}</span><div class="ana-bar-fill" style="width:${n/tabs.length*100}%;background:var(--green)"></div><span class="ana-bar-val">${n}</span></div>`).join('')}</div>`;
+    // ── Timeline ──
+    if(dateSorted.length > 1){
+        h += `<div class="ana-section"><h2>Zeitverlauf</h2><div class="timeline">`;
+        for(const[d,n]of dateSorted){
+            const pct = Math.max(5, (n/dateMax)*100);
+            h+=`<div class="tl-bar" style="height:${pct}%" data-label="${d}: ${n} Tabs" onclick="searchFor('${d}')"></div>`;
+        }
+        h += `</div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--light);margin-top:4px"><span>${dateSorted[0][0]}</span><span>${dateSorted[dateSorted.length-1][0]}</span></div></div>`;
+    }
 
-    h+=`<div class="ana-card"><h3>Zeitverlauf</h3>${Object.entries(dates).sort().reverse().map(([d,n])=>`<div class="ana-bar"><span class="ana-bar-label">${d}</span><div class="ana-bar-fill" style="width:${n/Math.max(...Object.values(dates))*100}%;background:var(--indigo)"></div><span class="ana-bar-val">${n}</span></div>`).join('')}</div>`;
+    // ── Tags cloud ──
+    if(tagSorted.length){
+        h += `<div class="ana-section"><h2>Tags <span style="font-size:12px;color:var(--light);font-weight:400">${tagSorted.length} tags</span></h2><div class="tag-cloud">`;
+        for(const[g,n]of tagSorted.slice(0,30)){
+            const size = Math.max(12, Math.min(18, 12 + (n/tagSorted[0][1])*6));
+            h+=`<div class="tag-pill" style="font-size:${size}px" onclick="filterByTag('${esc(g)}')">${esc(g)}<span class="tp-count">${n}</span></div>`;
+        }
+        h += `</div></div>`;
+    }
 
-    h+=`<div class="ana-card"><h3>Zusammenfassung</h3><div style="font-size:12px;line-height:1.8;color:var(--muted)"><p><b>${tabs.length}</b> Tabs insgesamt</p><p><b>${tabs.filter(t=>t.triaged_at).length}</b> triaged</p><p><b>${tabs.filter(t=>t.starred).length}</b> gemerkt</p><p><b>${Object.keys(tagCounts).length}</b> verschiedene Tags</p><p><b>${Object.keys(sources).length}</b> verschiedene Quellen</p></div></div>`;
+    // ── Top Sources ──
+    h += `<div class="ana-section"><h2>Top-Quellen <span style="font-size:12px;color:var(--light);font-weight:400">${uniqueDomains} domains</span></h2><div class="source-list">`;
+    for(let i=0;i<Math.min(srcSorted.length,12);i++){
+        const[d,n]=srcSorted[i];
+        const color=colors[i%colors.length];
+        h+=`<div class="source-item" onclick="searchFor('${esc(d)}')"><span class="si-name">${esc(d)}</span><div class="si-bar"><div class="si-fill" style="width:${(n/srcMax)*100}%;background:${color}"></div></div><span class="si-count">${n}</span></div>`;
+    }
+    h += `</div></div>`;
 
-    h+=`</div>`;
+    // ── Clusters ──
+    if(Object.keys(clust).length){
+        const clustSorted=Object.entries(clust).sort((a,b)=>b[1]-a[1]);
+        h += `<div class="ana-section"><h2>Themen-Cluster</h2><div class="source-list">`;
+        for(const[c,n]of clustSorted){
+            h+=`<div class="source-item" onclick="searchFor('${esc(c)}')"><span class="si-name">${esc(c)}</span><div class="si-bar"><div class="si-fill" style="width:${(n/nonIgnored.length)*100}%;background:var(--green)"></div></div><span class="si-count">${n}</span></div>`;
+        }
+        h += `</div></div>`;
+    }
+
+    // ── Behavior Analytics ──
+    const withBehavior = nonIgnored.filter(t => t.behavior_data);
+    if (withBehavior.length > 0) {
+        const scrollDepths = withBehavior.map(t => t.behavior_data.scroll_depth_pct || 0);
+        const activeTimes = withBehavior.map(t => t.behavior_data.active_time_sec || 0);
+        const avgScroll = Math.round(scrollDepths.reduce((a,b) => a+b, 0) / scrollDepths.length);
+        const avgActive = Math.round(activeTimes.reduce((a,b) => a+b, 0) / activeTimes.length);
+        const totalActive = activeTimes.reduce((a,b) => a+b, 0);
+        const ghostTabs = withBehavior.filter(t => (t.behavior_data.scroll_depth_pct || 0) === 0 && (t.behavior_data.active_time_sec || 0) < 3);
+        const deepReads = withBehavior.filter(t => (t.behavior_data.scroll_depth_pct || 0) >= 75);
+        const skimmed = withBehavior.filter(t => (t.behavior_data.scroll_depth_pct || 0) > 0 && (t.behavior_data.scroll_depth_pct || 0) < 30);
+        const selections = withBehavior.filter(t => t.behavior_data.selections && t.behavior_data.selections.length > 0);
+        const highInteract = withBehavior.filter(t => (t.behavior_data.click_count || 0) >= 5);
+
+        // Scroll depth distribution
+        const scrollBuckets = {'0%':0,'1-25%':0,'26-50%':0,'51-75%':0,'76-100%':0};
+        scrollDepths.forEach(s=>{if(s===0)scrollBuckets['0%']++;else if(s<=25)scrollBuckets['1-25%']++;else if(s<=50)scrollBuckets['26-50%']++;else if(s<=75)scrollBuckets['51-75%']++;else scrollBuckets['76-100%']++});
+        const bucketMax = Math.max(...Object.values(scrollBuckets), 1);
+
+        h += `<div class="ana-section"><h2>Browser-Verhalten <span style="font-size:12px;color:var(--light);font-weight:400">${withBehavior.length} Tabs mit Daten</span></h2>`;
+        h += `<div class="stat-row">
+            <div class="stat-card"><div class="stat-val">${avgScroll}%</div><div class="stat-label">⌀ Scroll-Tiefe</div></div>
+            <div class="stat-card"><div class="stat-val">${fmtTime(avgActive)}</div><div class="stat-label">⌀ Lesezeit</div></div>
+            <div class="stat-card"><div class="stat-val">${fmtTime(totalActive)}</div><div class="stat-label">Gesamtzeit</div></div>
+            <div class="stat-card"><div class="stat-val">${ghostTabs.length}</div><div class="stat-label">Ghost Tabs</div></div>
+            <div class="stat-card"><div class="stat-val">${deepReads.length}</div><div class="stat-label">Gelesen (75%+)</div></div>
+            <div class="stat-card"><div class="stat-val">${selections.length}</div><div class="stat-label">Text markiert</div></div>
+        </div>`;
+
+        // Scroll depth distribution bar chart
+        h += `<div style="margin-top:20px"><h3 style="font-size:14px;font-weight:600;margin-bottom:10px">Scroll-Tiefe Verteilung</h3><div class="source-list">`;
+        const bucketColors = {'0%':'#ef4444','1-25%':'#f59e0b','26-50%':'#3b82f6','51-75%':'#8b5cf6','76-100%':'#22c55e'};
+        for (const [label, n] of Object.entries(scrollBuckets)) {
+            h += `<div class="source-item"><span class="si-name">${label}</span><div class="si-bar"><div class="si-fill" style="width:${(n/bucketMax)*100}%;background:${bucketColors[label]}"></div></div><span class="si-count">${n}</span></div>`;
+        }
+        h += `</div></div>`;
+
+        // Reading patterns insight cards
+        h += `<div style="margin-top:20px"><h3 style="font-size:14px;font-weight:600;margin-bottom:10px">Lese-Patterns</h3><div class="insight-cards">`;
+        const ghostPct = withBehavior.length > 0 ? Math.round((ghostTabs.length/withBehavior.length)*100) : 0;
+        const deepPct = withBehavior.length > 0 ? Math.round((deepReads.length/withBehavior.length)*100) : 0;
+        const skimPct = withBehavior.length > 0 ? Math.round((skimmed.length/withBehavior.length)*100) : 0;
+        h += `<div class="insight"><div class="ins-label">Ghost Tabs</div><div class="ins-val">${ghostPct}%</div><div class="ins-sub">${ghostTabs.length} Tabs nie angesehen</div></div>`;
+        h += `<div class="insight"><div class="ins-label">Durchgelesen</div><div class="ins-val">${deepPct}%</div><div class="ins-sub">${deepReads.length} Tabs &ge;75% gescrollt</div></div>`;
+        h += `<div class="insight"><div class="ins-label">Überflogen</div><div class="ins-val">${skimPct}%</div><div class="ins-sub">${skimmed.length} Tabs &lt;30% gescrollt</div></div>`;
+        h += `<div class="insight"><div class="ins-label">Interaktiv</div><div class="ins-val">${highInteract.length}</div><div class="ins-sub">Tabs mit &ge;5 Klicks</div></div>`;
+        h += `</div></div>`;
+
+        // Text selections
+        if (selections.length) {
+            h += `<div style="margin-top:20px"><h3 style="font-size:14px;font-weight:600;margin-bottom:10px">Markierte Textstellen</h3><div style="display:flex;flex-direction:column;gap:6px">`;
+            for (const t of selections.slice(0, 8)) {
+                for (const s of (t.behavior_data.selections || []).slice(0, 3)) {
+                    h += `<div style="font-size:12px;padding:8px 12px;background:#f8fafc;border-left:3px solid var(--indigo);border-radius:4px;color:var(--muted)"><span style="font-weight:600;color:var(--text);font-size:11px">${esc(dom(t.url))}</span><br>&ldquo;${esc(s.substring(0,150))}${s.length>150?'...':''}&rdquo;</div>`;
+                }
+            }
+            h += `</div></div>`;
+        }
+
+        h += `</div>`;
+    }
+
+    // ── Insights ──
+    h += `<div class="ana-section"><h2>Insights</h2><div class="insight-cards">`;
+    h += `<div class="insight"><div class="ins-label">Triage-Rate</div><div class="ins-val">${triageRate}%</div><div class="ins-sub">${triaged.length} von ${nonIgnored.length} bearbeitet</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Dismiss-Rate</div><div class="ins-val">${dismissRate}%</div><div class="ins-sub">${cats['dismiss']} von ${triaged.length} verworfen</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Star-Rate</div><div class="ins-val">${starRate}%</div><div class="ins-sub">${starred.length} Tabs gemerkt</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Top-Quelle</div><div class="ins-val">${esc(topDomain)}</div><div class="ins-sub">${srcSorted[0]?srcSorted[0][1]:0} Tabs</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Top-Tag</div><div class="ins-val">${esc(topTag)}</div><div class="ins-sub">${tagSorted[0]?tagSorted[0][1]:0}x verwendet</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Tabs pro Session</div><div class="ins-val">${avgTabsPerSession}</div><div class="ins-sub">Durchschnitt aus ${SD.length} Sessions</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Content-Rate</div><div class="ins-val">${contentRate}%</div><div class="ins-sub">${withContent.length} Tabs mit Volltext</div></div>`;
+    h += `<div class="insight"><div class="ins-label">Unique Domains</div><div class="ins-val">${uniqueDomains}</div><div class="ins-sub">verschiedene Quellen</div></div>`;
+    h += `</div></div>`;
+
     document.getElementById('analyticsView').innerHTML=h;
 }
 
 function showToast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3000)}
 
+// ── SSE Progress ─────────────────────────────────────────────
+function checkActiveProgress() {
+    if (!isHosted) return;
+    const pending = allTabs().filter(t => !t.summary && !t.triaged_at);
+    if (!pending.length) return;
+    const sessionIds = [...new Set(pending.map(t => t.session_id))];
+    for (const sid of sessionIds) { pollProgress(sid); }
+}
+
+function pollProgress(sessionId) {
+    const banner = document.getElementById('progressBanner');
+    const fill = document.getElementById('pbFill');
+    const label = document.getElementById('pbLabel');
+    banner.classList.add('show');
+    const interval = setInterval(async () => {
+        try {
+            const r = await fetch(B + '/api/capture/' + sessionId + '/progress');
+            const d = await r.json();
+            const pct = d.total > 0 ? Math.round((d.completed / d.total) * 100) : 0;
+            if (d.phase === 'summarizing') { label.textContent = `Summarizing ${d.completed}/${d.total}...`; fill.style.width = pct + '%'; }
+            else if (d.phase === 'clustering') { label.textContent = 'Clustering themes...'; fill.style.width = '90%'; }
+            else if (d.phase === 'done') {
+                label.textContent = `Done! ${d.clusters || 0} clusters found.`;
+                fill.style.width = '100%';
+                clearInterval(interval);
+                setTimeout(async () => { banner.classList.remove('show'); await loadData(true); }, 2000);
+            }
+        } catch (e) { clearInterval(interval); banner.classList.remove('show'); }
+    }, 2000);
+}
+
+// Ignored domains
+async function ignoreDomain(id){
+    const t=allTabs().find(x=>x.id===id);if(!t)return;
+    const d=dom(t.url);
+    try{
+        await fetch(B+'/api/ignored-domains',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:d})});
+        if(!ignoredDomains.includes(d))ignoredDomains.push(d);
+        showToast(d+' wird ignoriert');render();
+    }catch(e){showToast('Fehler: '+e.message)}
+}
+
+function openIgnoredModal(){renderIgnoredList();document.getElementById('ignoredOverlay').classList.add('open')}
+function closeIgnoredModal(){document.getElementById('ignoredOverlay').classList.remove('open')}
+
+function renderIgnoredList(){
+    const el=document.getElementById('ignoredList');
+    if(!ignoredDomains.length){el.innerHTML='<div style="color:var(--muted);font-size:13px">Keine ignorierten Domains.</div>';return}
+    el.innerHTML=ignoredDomains.map(d=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px">${esc(d)}</span><button class="mbtn cl" onclick="removeIgnoredDomain('${esc(d)}')" style="font-size:11px">Entfernen</button></div>`).join('');
+}
+
+async function addIgnoredDomain(){
+    const inp=document.getElementById('addDomainInput');
+    const d=inp.value.trim().toLowerCase().replace(/^www\./,'');
+    if(!d)return;
+    try{
+        await fetch(B+'/api/ignored-domains',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:d})});
+        if(!ignoredDomains.includes(d))ignoredDomains.push(d);
+        inp.value='';renderIgnoredList();showToast(d+' wird ignoriert');
+    }catch(e){showToast('Fehler: '+e.message)}
+}
+
+async function removeIgnoredDomain(d){
+    try{
+        await fetch(B+'/api/ignored-domains/'+encodeURIComponent(d),{method:'DELETE'});
+        ignoredDomains=ignoredDomains.filter(x=>x!==d);
+        renderIgnoredList();render();showToast(d+' wird wieder erfasst');
+    }catch(e){showToast('Fehler: '+e.message)}
+}
+
+// ── Insights ─────────────────────────────────────────────────
+
+function renderInsights() {
+    const el = document.getElementById('insightsView');
+    const tabs = allTabs().filter(x => !ignoredDomains.includes(dom(x.url)));
+    const withContent = tabs.filter(x => x.has_content).length;
+    const withSummary = tabs.filter(x => x.summary && !x.summary.startsWith('[Zusammenfassung fehlgeschlagen:') && !x.summary.startsWith('[Kein ausreichender')).length;
+    const untriaged = tabs.filter(x => !x.triaged_at).length;
+
+    // Aggregate clusters
+    const clust = {};
+    const tagCounts = {};
+    const domainCounts = {};
+    tabs.forEach(t => {
+        if (t.cluster_id && t.cluster_label) {
+            if (!clust[t.cluster_id]) clust[t.cluster_id] = { label: t.cluster_label, count: 0, id: t.cluster_id };
+            clust[t.cluster_id].count++;
+        }
+        (t.tags || []).forEach(g => { tagCounts[g] = (tagCounts[g] || 0) + 1; });
+        const d = dom(t.url);
+        if (d) domainCounts[d] = (domainCounts[d] || 0) + 1;
+    });
+
+    const sortedClusters = Object.values(clust).sort((a, b) => b.count - a.count);
+    const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+    const topDomains = Object.entries(domainCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+    // Stats cards
+    let h = `<div class="ana-section"><h2>Content-Insights</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Tiefe thematische Analyse deiner Tabs via AI. Klicke auf ein Cluster oder Tag um die Analyse zu starten.</p>
+    <div class="stat-row" style="margin-bottom:24px">
+        <div class="stat-card"><div class="stat-val">${tabs.length}</div><div class="stat-label">Tabs gesamt</div></div>
+        <div class="stat-card"><div class="stat-val">${untriaged}</div><div class="stat-label">Offen</div></div>
+        <div class="stat-card"><div class="stat-val">${withContent}</div><div class="stat-label">Mit Content</div></div>
+        <div class="stat-card"><div class="stat-val">${sortedClusters.length}</div><div class="stat-label">Cluster</div></div>
+        <div class="stat-card"><div class="stat-val">${sortedTags.length}</div><div class="stat-label">Tags</div></div>
+    </div>`;
+
+    // Top domains
+    if (topDomains.length) {
+        h += `<h3 style="font-size:14px;font-weight:700;margin-bottom:8px">Top Quellen</h3>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
+            ${topDomains.map(([d, n]) => `<span class="ins-pill" onclick="insAnalyzeQuery('${esc(d)}')">${esc(d)} <span class="ip-count">${n}</span></span>`).join('')}
+        </div>`;
+    }
+
+    // Cluster cards
+    if (sortedClusters.length) {
+        h += `<h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Themen-Cluster</h3>
+        <div class="ins-grid">
+            ${sortedClusters.map(c => `<div class="ins-card" onclick="insAnalyzeCluster('${esc(c.id)}')">
+                <div class="ins-card-count">${c.count}</div>
+                <h4>${esc(c.label)}</h4>
+                <div class="ins-card-sub">Klicken zum Analysieren</div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    // Tag pills
+    if (sortedTags.length) {
+        h += `<h3 style="font-size:14px;font-weight:700;margin-bottom:10px">Tags</h3>
+        <div class="ins-pills">
+            ${sortedTags.map(([g, n]) => `<span class="ins-pill" onclick="insAnalyzeTag('${esc(g)}')">${esc(g)} <span class="ip-count">${n}</span></span>`).join('')}
+        </div>`;
+    }
+
+    // Free-text search
+    h += `<h3 style="font-size:14px;font-weight:700;margin-bottom:10px;margin-top:20px">Freie Analyse</h3>
+    <div class="ins-search">
+        <input type="text" id="insQuery" placeholder="Suchbegriff oder Frage eingeben...">
+        <button onclick="insAnalyzeQuery(document.getElementById('insQuery').value)">Analysieren</button>
+    </div>`;
+
+    // Result area (empty until user clicks something)
+    h += `<div id="insResult" style="min-height:20px"></div></div>`;
+    el.innerHTML = h;
+}
+
+function insAnalyzeCluster(clusterId) { _runInsights({ cluster_id: clusterId }); }
+function insAnalyzeTag(tag) { _runInsights({ tag: tag }); }
+function insAnalyzeQuery(query) { if (query.trim()) _runInsights({ query: query.trim() }); }
+
+async function _runInsights(body) {
+    const resultEl = document.getElementById('insResult');
+    resultEl.innerHTML = '<div class="ins-loading">AI analysiert deine Tabs... Das kann 30-60 Sekunden dauern.</div>';
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    try {
+        const r = await fetch(B + '/api/insights/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!r.ok) {
+            resultEl.innerHTML = `<div class="ins-block"><p style="color:var(--red)">API-Fehler: ${r.status} ${r.statusText}</p></div>`;
+            return;
+        }
+        const d = await r.json();
+
+        if (d.error) {
+            resultEl.innerHTML = `<div class="ins-block"><p style="color:var(--red)">${esc(d.error)}</p></div>`;
+        } else {
+            let h = `<p style="font-size:11px;color:var(--light);margin-bottom:12px">${d.tab_count} Tabs analysiert</p>`;
+
+            if (d.themes && d.themes.length) {
+                h += `<div class="ins-block"><h3>Themen</h3><ul>${d.themes.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`;
+            }
+            if (d.insights && d.insights.length) {
+                h += `<div class="ins-block"><h3>Erkenntnisse</h3><ul>${d.insights.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`;
+            }
+            if (d.connections && d.connections.length) {
+                h += `<div class="ins-block"><h3>Verbindungen</h3><ul>${d.connections.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`;
+            }
+            if (d.recommendations && d.recommendations.length) {
+                h += `<div class="ins-block"><h3>Empfehlungen</h3><ul>${d.recommendations.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`;
+            }
+            if (d.summary) {
+                h += `<div class="ins-block"><h3>Zusammenfassung</h3><p>${esc(d.summary)}</p></div>`;
+            }
+            resultEl.innerHTML = h;
+        }
+    } catch (e) {
+        resultEl.innerHTML = `<div class="ins-block"><p style="color:var(--red)">Fehler: ${esc(e.message)}</p></div>`;
+    }
+}
+
+// Legacy alias
+async function runInsights() { _runInsights({}); }
+
+// ── Keyboard shortcuts ───────────────────────────────────────
+
+function getTopCardTab() {
+    // Get the first visible card's tab data
+    const tabs = filtered(view === 'archive');
+    return tabs.length > 0 ? tabs[0] : null;
+}
+
+function ensureTopCardOpen() {
+    // Auto-expand the top card in triage/archive view
+    const tabs = filtered(view === 'archive');
+    if (tabs.length > 0) {
+        openCards.add(tabs[0].id);
+        // Remove kbd-active from all, add to top
+        document.querySelectorAll('.card.kbd-active').forEach(c => c.classList.remove('kbd-active'));
+        const el = document.getElementById('c' + tabs[0].id);
+        if (el) { el.classList.add('open', 'kbd-active'); el.querySelector('.card-sum')?.classList.add('expanded'); }
+    }
+}
+
 document.addEventListener('keydown',e=>{
-    if(e.key==='/'&&!e.target.matches('input,textarea,select')){e.preventDefault();document.getElementById('searchInput').focus()}
-    if(e.key==='Escape')closeFt();
+    if(e.target.matches('input,textarea,select')) return;
+    if(e.key==='/'){e.preventDefault();document.getElementById('searchInput').focus()}
+    if(e.key==='Escape'){closeFt();closeIgnoredModal();document.getElementById('dftBanner').classList.remove('show');return}
+    if(view === 'quick' && quickIdx < quickTabs.length) {
+        if(e.key === 'ArrowRight') { e.preventDefault(); quickSave(); }
+        else if(e.key === 'ArrowLeft') { e.preventDefault(); quickDismiss(); }
+        else if(e.key === 'ArrowDown') { e.preventDefault(); quickSkip(); }
+        else if(e.key === 's' || e.key === 'S') { e.preventDefault(); quickStar(); }
+        else if(e.key === ' ') { e.preventDefault(); const t=quickTabs[quickIdx]; if(t) openFt(t.id); }
+    }
+    // Keyboard shortcuts for triage/archive view (top card)
+    if((view === 'triage' || view === 'archive') && !document.querySelector('.ft-overlay.open')) {
+        const t = getTopCardTab();
+        if (!t) return;
+        if(e.key === 'ArrowRight') { e.preventDefault(); save1(t.id, true); }
+        else if(e.key === 'ArrowLeft') { e.preventDefault(); dismiss1(t.id); }
+        else if(e.key === 'ArrowDown') { e.preventDefault(); togOpen(t.id); /* toggle expand */ }
+        else if(e.key === 's' || e.key === 'S') { e.preventDefault(); togStar(t.id); }
+        else if(e.key === ' ') { e.preventDefault(); if(t.has_content) openFt(t.id); }
+        else if(e.key === 'Enter') { e.preventDefault(); save1(t.id); }
+    }
 });
 
-render();
+// After render, auto-expand top card
+const _origRender = render;
+render = function() {
+    _origRender();
+    if (view === 'triage' || view === 'archive') {
+        setTimeout(ensureTopCardOpen, 50);
+    }
+};
+
+// ── Init ─────────────────────────────────────────────────────
+loadData(false).then(() => { checkActiveProgress(); });
 </script>
 </body>
 </html>
