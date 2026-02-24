@@ -552,10 +552,9 @@ def update_content(tab_id: int, req: dict):
     import time
     content = req.get("content")
 
-    # Remove from pending queue
-    _pending_re_extract.pop(tab_id, None)
-
     if content:
+        # Extension delivered content — remove from pending queue
+        _pending_re_extract.pop(tab_id, None)
         # Extension successfully extracted content
         parsed_content = content
         og_image = req.get("og_image")

@@ -186,19 +186,29 @@ async function pollCloseRequests() {
 }
 
 // ── Poll for tabs needing content re-extraction ──────────────
+const _reExtractAttempted = new Set(); // track tabs we already tried (avoid repeated injection)
+
 async function pollReExtract() {
     try {
         const resp = await fetch(backendUrl + '/api/tabs/pending-re-extract');
         if (!resp.ok) return;
         const data = await resp.json();
-        if (!data.tabs || !data.tabs.length) return;
+        if (!data.tabs || !data.tabs.length) {
+            _reExtractAttempted.clear(); // reset when queue is empty
+            return;
+        }
 
         console.log('[TabTriage] Pending re-extract tabs:', data.tabs.length);
 
         for (const item of data.tabs) {
+            // Skip if we already attempted this tab (let trafilatura handle it)
+            if (_reExtractAttempted.has(item.tab_id)) continue;
+
             const allTabs = await chrome.tabs.query({});
             const normalizedTarget = normalizeUrl(item.url);
             const match = allTabs.find(t => normalizeUrl(t.url || '') === normalizedTarget);
+
+            _reExtractAttempted.add(item.tab_id);
 
             if (match) {
                 console.log('[TabTriage] Re-extracting content from open tab:', match.id, match.url);
@@ -216,29 +226,24 @@ async function pollReExtract() {
                     const content = results?.[0]?.result || null;
                     console.log('[TabTriage] Extracted content for tab', item.tab_id, ':', content ? content.length + ' chars' : 'null');
 
-                    // Send content to backend
-                    await fetch(backendUrl + '/api/tabs/' + item.tab_id + '/update-content', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: content })
-                    });
+                    // Send content to backend (only if we got something)
+                    if (content) {
+                        await fetch(backendUrl + '/api/tabs/' + item.tab_id + '/update-content', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: content })
+                        });
+                    } else {
+                        console.log('[TabTriage] Extension got null for tab', item.tab_id, '— leaving for trafilatura fallback');
+                        // Don't send null — let the 15s fallback timer handle it via trafilatura
+                    }
                 } catch (e) {
                     console.log('[TabTriage] Re-extract injection failed for tab', item.tab_id, ':', e.message);
-                    // Report failure so trafilatura fallback can kick in
-                    await fetch(backendUrl + '/api/tabs/' + item.tab_id + '/update-content', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ content: null })
-                    }).catch(() => {});
+                    // Don't send null — let trafilatura fallback handle it via the timer
                 }
             } else {
-                console.log('[TabTriage] Tab not open for re-extract:', item.url);
-                // Tab not open — report null so trafilatura fallback handles it
-                await fetch(backendUrl + '/api/tabs/' + item.tab_id + '/update-content', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: null })
-                }).catch(() => {});
+                console.log('[TabTriage] Tab not open for re-extract:', item.url, '— leaving for trafilatura fallback');
+                // Don't send null — let trafilatura fallback handle it via the timer
             }
         }
     } catch (e) {
