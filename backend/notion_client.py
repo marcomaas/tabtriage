@@ -20,6 +20,7 @@ API_KEY = _notion_config["api_key"]
 LINKS_DB = _notion_config["databases"]["links"]
 PARKEN_DB = _notion_config["databases"]["parken"]
 TASKS_DB = _notion_config["databases"]["tasks"]
+PROJECTS_DB = _notion_config["databases"].get("projects", "d725daaf-c5b5-479c-bac5-aa79ee02ebbd")
 
 
 def _headers():
@@ -46,19 +47,15 @@ def _chunk_text(text: str, max_len: int = 2000) -> list[str]:
 
 
 def get_projects() -> list[dict]:
-    """Load projects from Parken DB for dropdown (with pagination)."""
+    """Load projects from the Projects DB for dropdown (with pagination)."""
     body = {
-        "filter": {
-            "property": "Dashboard",
-            "select": {"does_not_equal": "Archiv"},
-        },
         "sorts": [{"property": "Name", "direction": "ascending"}],
         "page_size": 100,
     }
 
     projects = []
     while True:
-        resp = httpx.post(f"{NOTION_BASE}/databases/{PARKEN_DB}/query", headers=_headers(), json=body, timeout=30)
+        resp = httpx.post(f"{NOTION_BASE}/databases/{PROJECTS_DB}/query", headers=_headers(), json=body, timeout=30)
         if not resp.is_success:
             log.error("Failed to load projects: %s", resp.text[:300])
             break
@@ -74,6 +71,21 @@ def get_projects() -> list[dict]:
         body["start_cursor"] = data["next_cursor"]
 
     return projects
+
+
+def create_project(name: str) -> dict | None:
+    """Create a new project in the Projects DB."""
+    properties = {
+        "Name": {"title": [{"text": {"content": name[:2000]}}]},
+    }
+    body = {"parent": {"database_id": PROJECTS_DB}, "properties": properties}
+    resp = httpx.post(f"{NOTION_BASE}/pages", headers=_headers(), json=body, timeout=30)
+    if not resp.is_success:
+        log.error("Failed to create project: %s", resp.text[:300])
+        return None
+    page = resp.json()
+    log.info("Created project in Notion: %s", name)
+    return {"id": page["id"], "name": name}
 
 
 def create_link(title: str, url: str, summary: str, content: str | None = None) -> str | None:
