@@ -52,10 +52,16 @@
         let text = '';
         if (article && article.textContent) {
             text = cleanText(article.textContent);
-        } else {
-            // Fallback: get main content area
-            const main = document.querySelector('main, article, [role="main"], .content, .article-body');
-            text = cleanText((main || document.body).innerText || '');
+        }
+
+        // Fallback: if Readability got too little text, use innerText directly
+        // This catches SPAs (x.com), paywalled content already rendered in DOM, etc.
+        if (text.length < 100) {
+            const main = document.querySelector('main, article, [role="main"], .content, .article-body, #__next, #app, #root');
+            const fallbackText = cleanText((main || document.body).innerText || '');
+            if (fallbackText.length > text.length) {
+                text = fallbackText;
+            }
         }
 
         return JSON.stringify({
