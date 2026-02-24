@@ -46,7 +46,7 @@ def _chunk_text(text: str, max_len: int = 2000) -> list[str]:
 
 
 def get_projects() -> list[dict]:
-    """Load projects from Parken DB for dropdown."""
+    """Load projects from Parken DB for dropdown (with pagination)."""
     body = {
         "filter": {
             "property": "Dashboard",
@@ -55,16 +55,24 @@ def get_projects() -> list[dict]:
         "sorts": [{"property": "Name", "direction": "ascending"}],
         "page_size": 100,
     }
-    resp = httpx.post(f"{NOTION_BASE}/databases/{PARKEN_DB}/query", headers=_headers(), json=body, timeout=30)
-    if not resp.is_success:
-        log.error("Failed to load projects: %s", resp.text[:300])
-        return []
 
     projects = []
-    for page in resp.json().get("results", []):
-        title_prop = page["properties"].get("Name", {}).get("title", [])
-        name = title_prop[0]["plain_text"] if title_prop else "Untitled"
-        projects.append({"id": page["id"], "name": name})
+    while True:
+        resp = httpx.post(f"{NOTION_BASE}/databases/{PARKEN_DB}/query", headers=_headers(), json=body, timeout=30)
+        if not resp.is_success:
+            log.error("Failed to load projects: %s", resp.text[:300])
+            break
+
+        data = resp.json()
+        for page in data.get("results", []):
+            title_prop = page["properties"].get("Name", {}).get("title", [])
+            name = title_prop[0]["plain_text"] if title_prop else "Untitled"
+            projects.append({"id": page["id"], "name": name})
+
+        if not data.get("has_more"):
+            break
+        body["start_cursor"] = data["next_cursor"]
+
     return projects
 
 
