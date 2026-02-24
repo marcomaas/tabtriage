@@ -1052,11 +1052,29 @@ function closeFt(){document.getElementById('ftOverlay').classList.remove('open')
 // Autocomplete
 function acShow(inp,lid){
     const l=document.getElementById(lid);if(!l)return;
-    const q=inp.value.toLowerCase();
-    const m=projects.filter(p=>p.name.toLowerCase().includes(q)).slice(0,12);
-    if(!m.length){l.classList.remove('open');return}
-    l.innerHTML=m.map(p=>`<div class="ac-item" onmousedown="acPick('${esc(p.id)}','${esc(p.name)}','${lid}')">${esc(p.name)}</div>`).join('');
+    const q=inp.value.trim();
+    const ql=q.toLowerCase();
+    const m=projects.filter(p=>p.name.toLowerCase().includes(ql)).slice(0,12);
+    let html=m.map(p=>`<div class="ac-item" onmousedown="acPick('${esc(p.id)}','${esc(p.name)}','${lid}')">${esc(p.name)}</div>`).join('');
+    if(q.length>=2 && !m.some(p=>p.name.toLowerCase()===ql)){
+        html+=`<div class="ac-item" style="border-top:1px solid var(--border);color:var(--accent);font-weight:600" onmousedown="acCreate('${esc(q)}','${lid}',this)">+ "${esc(q)}" neu anlegen</div>`;
+    }
+    if(!html){l.classList.remove('open');return}
+    l.innerHTML=html;
     l.classList.add('open');
+}
+async function acCreate(name,lid,el){
+    el.textContent='Erstelle...';
+    try{
+        const r=await fetch(B+'/api/notion/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+        if(!r.ok)throw new Error(await r.text());
+        const p=await r.json();
+        projects.push(p);
+        acPick(p.id,p.name,lid);
+    }catch(e){
+        el.textContent='Fehler: '+e.message;
+        setTimeout(()=>{const l=document.getElementById(lid);if(l)l.classList.remove('open')},2000);
+    }
 }
 function acPick(id,name,lid){
     const l=document.getElementById(lid);

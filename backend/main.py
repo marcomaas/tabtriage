@@ -938,6 +938,23 @@ def notion_projects():
     return get_projects()
 
 
+@app.post("/api/notion/projects")
+def create_notion_project(req: dict):
+    """Create a new project in Parken DB and return its id + name."""
+    name = req.get("name", "").strip()
+    if not name:
+        raise HTTPException(400, "Name is required")
+    result = create_backlog_card(name, "", "")
+    if not result:
+        raise HTTPException(500, "Failed to create project in Notion")
+    # Re-fetch to get the new project's ID
+    projects = get_projects()
+    match = next((p for p in projects if p["name"] == name), None)
+    if not match:
+        raise HTTPException(500, "Project created but not found in re-fetch")
+    return match
+
+
 # ── Triage HTML Generation ───────────────────────────────────
 
 def _generate_triage_html():
