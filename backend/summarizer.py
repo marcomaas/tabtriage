@@ -18,11 +18,7 @@ _clean_env["PATH"] = "/usr/local/bin:/usr/bin:/bin"
 def summarize_tab(title: str, url: str, content: str | None) -> dict:
     """Summarize a tab, generate tags, and suggest category."""
     if not content or len(content.strip()) < 100:
-        return {
-            "summary": f"[Kein ausreichender Inhalt extrahiert für: {title}]",
-            "suggested_category": "archive",
-            "tags": [],
-        }
+        return _summarize_from_title(title, url)
 
     text = content[:30000] if len(content) > 30000 else content
 
@@ -90,6 +86,73 @@ def _parse_response(text: str, title: str) -> dict:
         summary = text[:500] if text else f"[Keine Zusammenfassung für: {title}]"
 
     return {"summary": summary, "suggested_category": category, "tags": tags}
+
+
+# Domains where content extraction typically fails
+_DIFFICULT_DOMAINS = {
+    "x.com": "Social-Media-Post (Tweet/Thread)",
+    "twitter.com": "Social-Media-Post (Tweet/Thread)",
+    "youtube.com": "YouTube-Video",
+    "youtu.be": "YouTube-Video",
+    "medium.com": "Medium-Artikel (Paywall)",
+    "google.com": "Google-Suchergebnis oder Google-Dienst",
+    "docs.google.com": "Google-Dokument",
+    "linkedin.com": "LinkedIn-Post oder -Profil",
+    "reddit.com": "Reddit-Diskussion",
+    "github.com": "GitHub-Repository oder -Seite",
+}
+
+
+def _summarize_from_title(title: str, url: str) -> dict:
+    """Fallback: summarize using only title + URL when no content is available."""
+    from urllib.parse import urlparse
+
+    domain = ""
+    try:
+        domain = urlparse(url).hostname.replace("www.", "")
+    except Exception:
+        pass
+
+    domain_hint = ""
+    for d, hint in _DIFFICULT_DOMAINS.items():
+        if d in domain:
+            domain_hint = f"\nHinweis: Dies ist ein {hint}. Die Seite liefert keinen extrahierbaren Text."
+            break
+
+    prompt = f"""Basierend auf dem Titel und der URL, erstelle eine Einschätzung dieses Browser-Tabs.
+Es liegt kein extrahierter Seiteninhalt vor — nutze nur den Titel und die URL.
+
+Titel: {title}
+URL: {url}{domain_hint}
+
+Antworte EXAKT in diesem Format (keine Markdown-Formatierung):
+SUMMARY: [1-2 Sätze auf Deutsch: Was könnte der Inhalt behandeln, basierend auf Titel und URL]
+CATEGORY: [genau eine von: read-later, reference, actionable, archive]
+TAGS: [komma-getrennte Tags auf Deutsch, 2-4 Stück]
+
+Kategorien:
+- read-later: Artikel/Videos die man lesen/schauen sollte
+- reference: Dokumentation, Tools, Ressourcen zum Nachschlagen
+- actionable: Enthält konkrete Aufgaben oder Handlungsbedarf
+- archive: Nicht mehr relevant, bereits erledigt, oder Spam"""
+
+    try:
+        result = subprocess.run(
+            ["/usr/local/bin/claude", "-p", "--output-format", "text"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            env=_clean_env,
+        )
+        if result.returncode != 0:
+            log.error("Title-only summarize failed (rc=%d): %s", result.returncode, result.stderr[:200])
+            return {"summary": f"[Kein ausreichender Inhalt extrahiert für: {title}]", "suggested_category": "archive", "tags": []}
+
+        return _parse_response(result.stdout.strip(), title)
+    except Exception as e:
+        log.error("Title-only summarize error: %s", e)
+        return {"summary": f"[Kein ausreichender Inhalt extrahiert für: {title}]", "suggested_category": "archive", "tags": []}
 
 
 def cluster_tabs(tabs: list[dict], projects: list[dict]) -> list[dict]:

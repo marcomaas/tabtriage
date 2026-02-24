@@ -412,8 +412,7 @@ def re_summarize_batch():
     with get_db() as db:
         rows = db.execute(
             """SELECT id, title, url, content FROM tabs
-               WHERE content IS NOT NULL AND length(content) > 100
-               AND (summary LIKE '[Zusammenfassung fehlgeschlagen:%' OR summary LIKE '[Kein ausreichender%' OR summary IS NULL)
+               WHERE (summary LIKE '[Zusammenfassung fehlgeschlagen:%' OR summary LIKE '[Kein ausreichender%' OR summary IS NULL)
                AND triaged_at IS NULL"""
         ).fetchall()
 
@@ -517,13 +516,11 @@ def request_close(tab_id: int):
 
 @app.post("/api/tabs/{tab_id}/re-summarize")
 def re_summarize_tab(tab_id: int):
-    """Re-summarize a single tab that already has content."""
+    """Re-summarize a single tab (with content, or title-only fallback)."""
     with get_db() as db:
         row = db.execute("SELECT title, url, content FROM tabs WHERE id = ?", (tab_id,)).fetchone()
         if not row:
             raise HTTPException(404, "Tab not found")
-        if not row["content"] or len(row["content"]) < 100:
-            raise HTTPException(400, "Tab has no content to summarize")
 
     def _do_resummarize(tid, title, url, content):
         try:
@@ -1053,8 +1050,23 @@ def _batch_re_extract(batch_id: str, tab_list: list[dict]):
                 progress["completed"] = progress.get("completed", 0) + 1
                 log.info("Batch re-extract: tab %d done (%d/%d)", tid, progress["completed"], progress["total"])
             else:
-                progress["failed"] = progress.get("failed", 0) + 1
-                log.warning("Batch re-extract: tab %d failed (no content)", tid)
+                # Trafilatura failed — try title-only summarize fallback
+                with get_db() as db:
+                    r = db.execute("SELECT title, url FROM tabs WHERE id = ?", (tid,)).fetchone()
+                    if r:
+                        s = summarize_tab(r["title"], r["url"], None)
+                        if not s["summary"].startswith("[Kein"):
+                            tags_json = json.dumps(s.get("tags", [])) if s.get("tags") else None
+                            db.execute(
+                                "UPDATE tabs SET summary = ?, suggested_category = ?, tags = COALESCE(?, tags) WHERE id = ?",
+                                (s["summary"], s["suggested_category"], tags_json, tid),
+                            )
+                            db.commit()
+                            progress["completed"] = progress.get("completed", 0) + 1
+                            log.info("Batch re-extract: tab %d title-only fallback succeeded", tid)
+                        else:
+                            progress["failed"] = progress.get("failed", 0) + 1
+                            log.warning("Batch re-extract: tab %d failed (no content, title-only also failed)", tid)
         except Exception as e:
             progress["failed"] = progress.get("failed", 0) + 1
             log.error("Batch re-extract error for tab %d: %s", tid, e)
