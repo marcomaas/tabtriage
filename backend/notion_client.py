@@ -20,7 +20,7 @@ API_KEY = _notion_config["api_key"]
 LINKS_DB = _notion_config["databases"]["links"]
 PARKEN_DB = _notion_config["databases"]["parken"]
 TASKS_DB = _notion_config["databases"]["tasks"]
-PROJECTS_DB = _notion_config["databases"].get("projects", "d725daaf-c5b5-479c-bac5-aa79ee02ebbd")
+PROJECTS_DB = _notion_config["databases"]["projects"]
 
 
 def _headers():
