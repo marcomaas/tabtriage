@@ -57,7 +57,10 @@ Triage-UI zum Kategorisieren und Weiterleiten an Notion-Projekte/Tasks.
 ### Content-Extraktion
 - chrome.scripting.executeScript: erst readability.min.js, dann content.js
 - content.js ist IIFE, returnt JSON-String: `{text, og_image, og_description, media}`
-- Manche Seiten (Paywall, CSP, JS-only) geben NULL zurück
+- Readability < 100 Zeichen → Fallback auf `document.body.innerText` (SPAs, Paywalls)
+- Fallback-Selektoren: `main, article, [role="main"], #__next, #app, #root`
+- summarizer.py: Kein Content → Title-only Fallback via Claude (`_summarize_from_title`)
+- `_DIFFICULT_DOMAINS` dict gibt Claude Kontext-Hints (x.com, youtube, medium etc.)
 
 ## Notion-Integration
 Konfiguration aus: `/Users/marcomaas/kur-app/config/notion.json`
@@ -65,6 +68,7 @@ Konfiguration aus: `/Users/marcomaas/kur-app/config/notion.json`
 | DB | ID | Zweck |
 |---|---|---|
 | Tasks | 57ec1483-fcbe-4da4-877d-47054c33d0fe | Todos (Next Action / Someday/Maybe) |
+| Projects | d725daaf-c5b5-479c-bac5-aa79ee02ebbd | Echte Projekt-DB (~52 Projekte, Autocomplete) |
 | Links | aus notion.json | Web Clipper Mastertabelle |
 | Parken | aus notion.json | Backlog-Karten (Dashboard=Backlog) |
 
@@ -87,7 +91,8 @@ Notion NIEMALS löschen - nur appenden (globale Regel).
 | `/api/triage` | POST | Einzelne Triage-Entscheidung |
 | `/api/triage/bulk` | POST | Bulk-Triage |
 | `/api/search` | GET | FTS5-Volltextsuche |
-| `/api/notion/projects` | GET | Projekte aus Parken-DB für Dropdown |
+| `/api/notion/projects` | GET | Projekte aus Projects-DB für Dropdown (paginiert) |
+| `/api/notion/projects` | POST | Neues Projekt in Projects-DB anlegen |
 
 ## Sessions-DB
 - Hostname pro Session (via `platform.node()`)
